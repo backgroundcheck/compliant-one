@@ -185,3 +185,6 @@ config/local_settings.py
 *.bak
 *.backup
 *~
+
+# Embedded repositories (to be handled as submodules)
+integrations/ethics-eye-osint-guard/

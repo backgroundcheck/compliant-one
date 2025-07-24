@@ -1,23 +1,145 @@
-# Compliant.one - RegTech Platform
+# Compliant.One RegTech Platform 🛡️
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![Streamlit](https://img.shields.io/badge/streamlit-1.28+-red.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B.svg)](https://streamlit.io)
 
-**Trusted Third-Party Independent Risk & Compliance Solutions Provider**
-
-A comprehensive RegTech platform designed to help Financial Institutions, DNFBPs (Designated Non-Financial Businesses and Professions), and Corporates meet FATF-aligned AML/KYC obligations through advanced AI-powered compliance automation.
+**Enterprise RegTech Platform - Advanced AI-powered Compliance Automation, OSINT Intelligence, and Real-time Transparency Monitoring**
 
 ## 🎯 Overview
 
-Compliant.one is an enterprise-grade compliance platform that combines traditional RegTech capabilities with cutting-edge AI and machine learning technologies to provide comprehensive risk assessment, sanctions screening, and compliance monitoring solutions.
+**Compliant.One** is an enterprise-grade RegTech platform that transforms compliance operations through advanced AI automation, real-time intelligence gathering, and comprehensive risk assessment. Built for financial services, government agencies, and regulated industries.
 
-## 🔑 Core Services & USP
+### 🚀 Key Features
 
-### 🔒 Digital Identity Verification
-- Multi-factor digital identity validation
-- Document authentication and verification
-- Biometric identity matching
+- **🔒 Digital Identity Verification**: Multi-factor validation with biometric matching
+- **📊 KYC/CDD/EDD Automation**: Risk-based customer categorization with AI workflows
+- **🕵️‍♂️ OSINT Intelligence**: Advanced open-source intelligence gathering and analysis
+- **🌐 Beneficial Ownership**: UBO identification and corporate structure mapping
+- **⚖️ Sanctions Screening**: Real-time screening against global watchlists
+- **🔍 Ongoing Monitoring**: Continuous surveillance and adverse media detection
+- **🕷️ Web Intelligence**: Automated data collection from transparency and government sources
+- **📈 AI Analytics**: Predictive risk modeling and pattern recognition
+
+## 🏗️ Architecture
+
+### Core Services
+
+```
+compliant-one/
+├── 🔐 authentication/          # User management & access control
+├── 📊 dashboard/              # Web interface & visualization
+├── 🧠 services/               # Core business logic
+│   ├── ai/                    # AI & machine learning services
+│   ├── identity/              # Identity verification
+│   ├── kyc/                   # KYC/CDD/EDD workflows
+│   ├── osint/                 # OSINT intelligence gathering
+│   ├── sanctions/             # Sanctions & PEP screening
+│   ├── beneficial_ownership/  # UBO analysis
+│   ├── scraping/             # Web intelligence collection
+│   └── compliance/           # Risk rules & case management
+├── 🗄️ database/              # Data persistence layer
+├── 🔧 config/                # Configuration management
+└── 📚 docs/                  # Documentation
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.10 or higher
+- MongoDB (for data persistence)
+- 4GB+ RAM recommended
+- Internet connection for external API integrations
+
+### Installation
+
+1. **Clone the repository:**
+```bash
+git clone https://github.com/backgroundcheck/compliant-one-regtech.git
+cd compliant-one-regtech
+```
+
+2. **Install dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+3. **Run quick setup:**
+```bash
+chmod +x quickstart.sh
+./quickstart.sh
+```
+
+4. **Launch the platform:**
+```bash
+streamlit run dashboard/main.py --server.port 8502
+```
+
+5. **Access the dashboard:**
+   - URL: http://localhost:8502
+   - Login: `admin` / `admin123`
+
+## 📊 Platform Capabilities
+
+### 🔍 Intelligence & Monitoring
+
+- **Real-time Data Collection**: Automated scraping of government databases, transparency portals, and news sources
+- **Adverse Media Monitoring**: AI-powered detection of negative news and compliance violations
+- **Transparency Intelligence**: Specialized monitoring of corruption and governance data
+- **Risk Pattern Detection**: Machine learning algorithms for anomaly identification
+
+### ⚖️ Compliance Automation
+
+- **Sanctions Screening**: OFAC, EU, UN consolidated lists with automatic updates
+- **PEP Identification**: Politically Exposed Persons database with relationship mapping
+- **Transaction Monitoring**: AI-powered suspicious activity detection
+- **Regulatory Reporting**: Automated compliance report generation
+
+### 🧠 AI & Analytics
+
+- **Predictive Risk Modeling**: ML-based risk forecasting and trend analysis
+- **Network Analysis**: Relationship mapping and connection discovery
+- **Sentiment Analysis**: AI-powered media sentiment evaluation
+- **Behavioral Analytics**: Pattern recognition for fraud detection
+
+## 🕷️ Web Intelligence Features
+
+### Automated Data Collection
+
+The platform includes a comprehensive web scraping system for intelligence gathering:
+
+- **Government Data**: Procurement monitoring, transparency reports, regulatory updates
+- **Corporate Intelligence**: Company filings, beneficial ownership, director networks
+- **News & Media**: Real-time adverse media monitoring and sentiment analysis
+- **Sanctions Updates**: Automatic collection from global regulatory bodies
+
+### Specialized Modules
+
+- **Transparency International Monitoring**: Real-time corruption intelligence
+- **Government Procurement Tracking**: Irregularity detection across jurisdictions
+- **Corporate Registry Monitoring**: UBO changes and director updates
+- **Media Intelligence**: Automated news aggregation and analysis
+
+## 🎯 Use Cases
+
+### Financial Services
+- **Customer Onboarding**: Automated KYC/CDD with risk scoring
+- **Transaction Monitoring**: Real-time AML compliance
+- **Sanctions Compliance**: Continuous screening and monitoring
+- **Regulatory Reporting**: Automated FATF and jurisdictional reporting
+
+### Government & Public Sector
+- **Transparency Monitoring**: Corruption and governance tracking
+- **Procurement Oversight**: Automated irregularity detection
+- **Public Official Screening**: PEP and conflict of interest monitoring
+- **Intelligence Gathering**: OSINT collection and analysis
+
+### Corporate Compliance
+- **Vendor Screening**: Supply chain risk assessment
+- **Due Diligence**: Comprehensive background investigations
+- **ESG Monitoring**: Environmental and governance compliance
+- **Third-Party Risk**: Ongoing relationship monitoring
 - Cross-border identity validation
 
 ### 📊 KYC/CDD/EDD Screening
