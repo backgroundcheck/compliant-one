@@ -31,6 +31,9 @@ compliant-one/
 ├── 📊 dashboard/              # Web interface & visualization
 ├── 🧠 services/               # Core business logic
 │   ├── ai/                    # AI & machine learning services
+│   │   ├── ragflow_client.py  # RAGFlow integration client
+│   │   ├── document_processor.py # Enhanced document processing
+│   │   └── compliance_chat.py # AI compliance chat service
 │   ├── identity/              # Identity verification
 │   ├── kyc/                   # KYC/CDD/EDD workflows
 │   ├── osint/                 # OSINT intelligence gathering
@@ -38,10 +41,35 @@ compliant-one/
 │   ├── beneficial_ownership/  # UBO analysis
 │   ├── scraping/             # Web intelligence collection
 │   └── compliance/           # Risk rules & case management
+├── 🤖 integrations/           # External service integrations
+│   └── ragflow/              # RAGFlow AI integration
 ├── 🗄️ database/              # Data persistence layer
 ├── 🔧 config/                # Configuration management
 └── 📚 docs/                  # Documentation
 ```
+
+## 🤖 AI-Powered Compliance (RAGFlow Integration)
+
+**Compliant.One** now includes full integration with [RAGFlow](https://github.com/backgroundcheck/ragflow), an open-source RAG (Retrieval-Augmented Generation) engine for deep document understanding and intelligent compliance assistance.
+
+### AI Features
+
+- **📄 Intelligent Document Processing**: Automatic classification, extraction, and analysis of compliance documents
+- **🔍 Smart Compliance Search**: Vector-based semantic search across regulatory knowledge base
+- **💬 AI Compliance Chat**: Natural language Q&A for compliance guidance and regulatory interpretation
+- **📋 Document Classification**: Automatic categorization of regulatory documents (AML policies, transaction reports, etc.)
+- **🎯 Compliance Insights**: AI-generated summaries and risk assessments from documents
+- **⚡ Real-time Knowledge**: Up-to-date regulatory information and compliance guidance
+
+### Supported Document Types
+
+- AML/KYC Policies and Procedures
+- Transaction Monitoring Reports
+- Regulatory Filings (SARs, CTRs)
+- Customer Due Diligence Records
+- Sanctions and Watchlist Documents
+- Risk Assessment Reports
+- Audit and Compliance Reports
 
 ## 🚀 Quick Start
 

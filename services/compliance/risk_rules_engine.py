@@ -688,34 +688,96 @@ class RiskRulesManager:
         
         return rule_dict
     
+    def _parse_enum_value(self, enum_class, value_str: str):
+        """Parse enum value handling both 'EnumClass.VALUE' and 'value' formats"""
+        if isinstance(value_str, str):
+            # Handle 'EnumClass.VALUE' format
+            if '.' in value_str:
+                value_str = value_str.split('.')[-1]
+            
+            # Convert to lowercase for enum lookup
+            if enum_class == RuleOperator:
+                # Map common variations
+                value_map = {
+                    'GREATER_THAN': 'greater_than',
+                    'LESS_THAN': 'less_than',
+                    'GREATER_EQUAL': 'greater_equal',
+                    'LESS_EQUAL': 'less_equal',
+                    'NOT_EQUALS': 'not_equals',
+                    'EQUALS': 'equals',
+                    'CONTAINS': 'contains',
+                    'NOT_CONTAINS': 'not_contains',
+                    'STARTS_WITH': 'starts_with',
+                    'ENDS_WITH': 'ends_with',
+                    'REGEX_MATCH': 'regex_match',
+                    'IN_LIST': 'in_list',
+                    'NOT_IN_LIST': 'not_in_list',
+                    'IS_EMPTY': 'is_empty',
+                    'IS_NOT_EMPTY': 'is_not_empty'
+                }
+                value_str = value_map.get(value_str, value_str.lower())
+            elif enum_class == ActionType:
+                # Map action types
+                action_map = {
+                    'ALERT': 'alert',
+                    'REVIEW': 'review',
+                    'BLOCK': 'block',
+                    'LOG': 'log',
+                    'EMAIL': 'email',
+                    'WEBHOOK': 'webhook',
+                    'ESCALATE': 'escalate',
+                    'APPROVE': 'approve',
+                    'REJECT': 'reject'
+                }
+                value_str = action_map.get(value_str, value_str.lower())
+            elif enum_class == RuleType:
+                # Map rule types
+                rule_map = {
+                    'TRANSACTION_MONITORING': 'transaction_monitoring',
+                    'SANCTIONS_SCREENING': 'sanctions_screening',
+                    'PEP_SCREENING': 'pep_screening',
+                    'ADVERSE_MEDIA': 'adverse_media',
+                    'GEOGRAPHIC_RISK': 'geographic_risk',
+                    'BEHAVIORAL_ANALYSIS': 'behavioral_analysis',
+                    'COMPLIANCE_VALIDATION': 'compliance_validation',
+                    'CUSTOM': 'custom'
+                }
+                value_str = rule_map.get(value_str, value_str.lower())
+        
+        return enum_class(value_str)
+    
     def _deserialize_rule(self, rule_data: Dict[str, Any]) -> RiskRule:
         """Deserialize rule from dictionary"""
-        # Convert strings back to enums
-        rule_data['rule_type'] = RuleType(rule_data['rule_type'])
-        
-        # Convert condition operators
-        for condition in rule_data['conditions']:
-            condition['operator'] = RuleOperator(condition['operator'])
-        
-        # Convert action types
-        for action in rule_data['actions']:
-            action['action_type'] = ActionType(action['action_type'])
-        
-        # Convert datetime strings
-        if isinstance(rule_data['created_at'], str):
-            rule_data['created_at'] = datetime.fromisoformat(rule_data['created_at'])
-        if isinstance(rule_data['updated_at'], str):
-            rule_data['updated_at'] = datetime.fromisoformat(rule_data['updated_at'])
-        
-        # Create condition objects
-        conditions = [RuleCondition(**cond) for cond in rule_data['conditions']]
-        rule_data['conditions'] = conditions
-        
-        # Create action objects
-        actions = [RuleAction(**action) for action in rule_data['actions']]
-        rule_data['actions'] = actions
-        
-        return RiskRule(**rule_data)
+        try:
+            # Convert strings back to enums
+            rule_data['rule_type'] = self._parse_enum_value(RuleType, rule_data['rule_type'])
+            
+            # Convert condition operators
+            for condition in rule_data['conditions']:
+                condition['operator'] = self._parse_enum_value(RuleOperator, condition['operator'])
+            
+            # Convert action types
+            for action in rule_data['actions']:
+                action['action_type'] = self._parse_enum_value(ActionType, action['action_type'])
+            
+            # Convert datetime strings
+            if isinstance(rule_data['created_at'], str):
+                rule_data['created_at'] = datetime.fromisoformat(rule_data['created_at'])
+            if isinstance(rule_data['updated_at'], str):
+                rule_data['updated_at'] = datetime.fromisoformat(rule_data['updated_at'])
+            
+            # Create condition objects
+            conditions = [RuleCondition(**cond) for cond in rule_data['conditions']]
+            rule_data['conditions'] = conditions
+            
+            # Create action objects
+            actions = [RuleAction(**action) for action in rule_data['actions']]
+            rule_data['actions'] = actions
+            
+            return RiskRule(**rule_data)
+        except Exception as e:
+            self.logger.logger.error(f"Error deserializing rule {rule_data.get('rule_id', 'unknown')}: {e}")
+            raise
     
     def _initialize_default_rules(self):
         """Initialize default compliance rules"""

@@ -94,10 +94,39 @@ pydantic-settings>=2.1.0
 python-dateutil>=2.8.0
 pytz>=2023.3
 
+# Scraping & Data Collection
+schedule>=1.2.0
+croniter>=1.4.0
+aiofiles>=23.2.0
+lxml>=4.9.0
+
 # File Processing
 openpyxl>=3.1.0
 python-docx>=1.1.0
 PyPDF2>=3.0.0
+reportlab>=4.0.0
+fpdf>=3.0.0
+pdfplumber>=0.9.0
+
+# Text Processing & Analysis
+fuzzywuzzy>=0.18.0
+python-Levenshtein>=0.21.0
+langchain>=0.0.300
+textblob>=0.17.0
+nltk>=3.8.0
+cohere>=4.32.0
+
+# RAGFlow Integration Dependencies
+python-multipart>=0.0.6
+filetype>=1.2.0
+python-magic>=0.4.27
+pypdf>=3.17.0  # Enhanced PDF processing for RAGFlow
+faiss-cpu>=1.7.4  # Vector similarity search
+chromadb>=0.4.0  # Vector database
+sentence-transformers>=2.2.0  # Embedding models
+openai>=1.3.0  # OpenAI API integration
+anthropic>=0.7.0  # Claude API integration
+tiktoken>=0.5.0  # Token counting for LLMs
 
 # Geographic & Country Data
 pycountry>=23.12.0
@@ -119,14 +148,3 @@ twilio>=8.11.0
 ldap3>=2.9.0
 pysaml2>=7.4.0
 authlib>=1.2.0
-
-# Legacy requirements from compliant.one
-streamlit
-pandas
-fpdf
-fuzzywuzzy
-python-Levenshtein
-langchain
-pdfplumber
-python-docx
-cohere

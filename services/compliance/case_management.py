@@ -685,54 +685,116 @@ class CaseManagementSystem:
         
         return case_dict
     
+    def _parse_enum_value(self, enum_class, value_str: str):
+        """Parse enum value handling both 'EnumClass.VALUE' and 'value' formats"""
+        if isinstance(value_str, str):
+            # Handle 'EnumClass.VALUE' format
+            if '.' in value_str:
+                value_str = value_str.split('.')[-1]
+            
+            # Convert to lowercase for enum lookup
+            if enum_class == CaseType:
+                case_map = {
+                    'AML_INVESTIGATION': 'aml_investigation',
+                    'SANCTIONS_VIOLATION': 'sanctions_violation',
+                    'PEP_REVIEW': 'pep_review',
+                    'ADVERSE_MEDIA': 'adverse_media',
+                    'TRANSACTION_MONITORING': 'transaction_monitoring',
+                    'CUSTOMER_DUE_DILIGENCE': 'customer_due_diligence',
+                    'SUSPICIOUS_ACTIVITY': 'suspicious_activity',
+                    'REGULATORY_INQUIRY': 'regulatory_inquiry',
+                    'INTERNAL_AUDIT': 'internal_audit',
+                    'POLICY_VIOLATION': 'policy_violation'
+                }
+                value_str = case_map.get(value_str, value_str.lower())
+            elif enum_class == CasePriority:
+                priority_map = {
+                    'URGENT': 'urgent',
+                    'CRITICAL': 'critical',
+                    'HIGH': 'high',
+                    'MEDIUM': 'medium',
+                    'LOW': 'low'
+                }
+                value_str = priority_map.get(value_str, value_str.lower())
+            elif enum_class == CaseStatus:
+                status_map = {
+                    'OPEN': 'open',
+                    'IN_PROGRESS': 'in_progress',
+                    'PENDING_REVIEW': 'pending_review',
+                    'ESCALATED': 'escalated',
+                    'RESOLVED': 'resolved',
+                    'CLOSED': 'closed',
+                    'ARCHIVED': 'archived'
+                }
+                value_str = status_map.get(value_str, value_str.lower())
+            elif enum_class == RiskRating:
+                risk_map = {
+                    'MINIMAL': 'minimal',
+                    'LOW': 'low',
+                    'MEDIUM': 'medium',
+                    'HIGH': 'high',
+                    'CRITICAL': 'critical'
+                }
+                value_str = risk_map.get(value_str, value_str.lower())
+        
+        return enum_class(value_str)
+    
     def _deserialize_case(self, case_data: Dict[str, Any]) -> ComplianceCase:
         """Deserialize case from dictionary"""
-        # Convert enum strings back to enums
-        case_data['case_type'] = CaseType(case_data['case_type'])
-        case_data['status'] = CaseStatus(case_data['status'])
-        case_data['priority'] = CasePriority(case_data['priority'])
-        case_data['risk_rating'] = RiskRating(case_data['risk_rating'])
-        
-        # Convert datetime strings
-        datetime_fields = ['created_at', 'updated_at', 'due_date', 'closed_at']
-        for field in datetime_fields:
-            if case_data.get(field) and isinstance(case_data[field], str):
-                case_data[field] = datetime.fromisoformat(case_data[field])
-        
-        # Convert actions
-        actions = []
-        for action_data in case_data.get('actions', []):
-            action_data['action_type'] = ActionType(action_data['action_type'])
-            action_data['timestamp'] = datetime.fromisoformat(action_data['timestamp'])
-            actions.append(CaseAction(**action_data))
-        case_data['actions'] = actions
-        
-        # Convert evidence
-        evidence = []
-        for evidence_data in case_data.get('evidence', []):
-            if evidence_data.get('collected_at') and isinstance(evidence_data['collected_at'], str):
-                evidence_data['collected_at'] = datetime.fromisoformat(evidence_data['collected_at'])
-            evidence.append(CaseEvidence(**evidence_data))
-        case_data['evidence'] = evidence
-        
-        # Convert tasks
-        tasks = []
-        for task_data in case_data.get('tasks', []):
-            task_data['priority'] = CasePriority(task_data['priority'])
-            datetime_fields = ['due_date', 'completed_at']
+        try:
+            # Convert enum strings back to enums
+            case_data['case_type'] = self._parse_enum_value(CaseType, case_data['case_type'])
+            case_data['status'] = self._parse_enum_value(CaseStatus, case_data['status'])
+            case_data['priority'] = self._parse_enum_value(CasePriority, case_data['priority'])
+            case_data['risk_rating'] = self._parse_enum_value(RiskRating, case_data['risk_rating'])
+            
+            # Convert datetime strings
+            datetime_fields = ['created_at', 'updated_at', 'due_date', 'closed_at']
             for field in datetime_fields:
-                if task_data.get(field) and isinstance(task_data[field], str):
-                    task_data[field] = datetime.fromisoformat(task_data[field])
-            tasks.append(CaseTask(**task_data))
-        case_data['tasks'] = tasks
-        
-        return ComplianceCase(**case_data)
+                if case_data.get(field) and isinstance(case_data[field], str):
+                    case_data[field] = datetime.fromisoformat(case_data[field])
+            
+            # Convert actions
+            actions = []
+            for action_data in case_data.get('actions', []):
+                action_data['action_type'] = ActionType(action_data['action_type'])
+                action_data['timestamp'] = datetime.fromisoformat(action_data['timestamp'])
+                actions.append(CaseAction(**action_data))
+            case_data['actions'] = actions
+            
+            # Convert evidence
+            evidence = []
+            for evidence_data in case_data.get('evidence', []):
+                if evidence_data.get('collected_at') and isinstance(evidence_data['collected_at'], str):
+                    evidence_data['collected_at'] = datetime.fromisoformat(evidence_data['collected_at'])
+                evidence.append(CaseEvidence(**evidence_data))
+            case_data['evidence'] = evidence
+            
+            # Convert tasks
+            tasks = []
+            for task_data in case_data.get('tasks', []):
+                task_data['priority'] = CasePriority(task_data['priority'])
+                datetime_fields = ['due_date', 'completed_at']
+                for field in datetime_fields:
+                    if task_data.get(field) and isinstance(task_data[field], str):
+                        task_data[field] = datetime.fromisoformat(task_data[field])
+                tasks.append(CaseTask(**task_data))
+            case_data['tasks'] = tasks
+            
+            return ComplianceCase(**case_data)
+        except Exception as e:
+            self.logger.logger.error(f"Error deserializing case {case_data.get('case_id', 'unknown')}: {e}")
+            raise
     
     def _deserialize_template(self, template_data: Dict[str, Any]) -> CaseTemplate:
         """Deserialize template from dictionary"""
-        template_data['case_type'] = CaseType(template_data['case_type'])
-        template_data['default_priority'] = CasePriority(template_data['default_priority'])
-        return CaseTemplate(**template_data)
+        try:
+            template_data['case_type'] = self._parse_enum_value(CaseType, template_data['case_type'])
+            template_data['default_priority'] = self._parse_enum_value(CasePriority, template_data['default_priority'])
+            return CaseTemplate(**template_data)
+        except Exception as e:
+            self.logger.logger.error(f"Error deserializing template {template_data.get('template_id', 'unknown')}: {e}")
+            raise
     
     def _initialize_default_templates(self):
         """Initialize default case templates"""
