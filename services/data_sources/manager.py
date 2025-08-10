@@ -19,8 +19,17 @@ sys.path.insert(0, str(project_root))
 from utils.logger import get_logger
 from services.data_sources.sanctions_watchlists import SanctionsWatchlistService
 from services.data_sources.pep_data import PEPDataService
-from services.data_sources.adverse_media import AdverseMediaService
 from services.data_sources.corruption_data import CorruptionDataService
+
+# For backward compatibility, try to import the original adverse media service
+try:
+    from services.data_sources.adverse_media_simple import AdverseMediaService
+except ImportError:
+    # Fallback to the enhanced version from sigmanaut
+    try:
+        from services.data_sources.adverse_media import AdverseMediaMonitor as AdverseMediaService
+    except ImportError:
+        AdverseMediaService = None
 
 logger = get_logger(__name__)
 
@@ -58,8 +67,14 @@ class DataSourcesManager:
         # Initialize individual services
         self.sanctions_service = SanctionsWatchlistService()
         self.pep_service = PEPDataService()
-        self.adverse_media_service = AdverseMediaService()
         self.corruption_service = CorruptionDataService()
+        
+        # Initialize adverse media service if available
+        if AdverseMediaService:
+            self.adverse_media_service = AdverseMediaService()
+        else:
+            self.adverse_media_service = None
+            self.logger.warning("AdverseMediaService not available")
         
         # Task management
         self.active_tasks = {}
@@ -96,14 +111,15 @@ class DataSourcesManager:
             )
         
         # Adverse media sources configuration
-        for source_id in self.adverse_media_service.sources.keys():
-            self.source_configs[source_id] = DataSourceConfig(
-                source_id=source_id,
-                source_type="adverse_media",
-                is_enabled=True,
-                update_priority=3,  # Medium priority
-                rate_limit_per_hour=200
-            )
+        if self.adverse_media_service:
+            for source_id in getattr(self.adverse_media_service, 'sources', {}).keys():
+                self.source_configs[source_id] = DataSourceConfig(
+                    source_id=source_id,
+                    source_type="adverse_media",
+                    is_enabled=True,
+                    update_priority=3,  # Medium priority
+                    rate_limit_per_hour=200
+                )
         
         # Corruption sources configuration
         for source_id in self.corruption_service.sources.keys():
@@ -218,7 +234,7 @@ class DataSourcesManager:
                 search_results["results"]["pep"] = {"error": str(e)}
         
         # Search adverse media if requested
-        if "adverse_media" in source_types:
+        if "adverse_media" in source_types and self.adverse_media_service:
             try:
                 # For adverse media, perform monitoring for the query entity
                 entities = [query]  # Treat query as entity name
@@ -236,6 +252,8 @@ class DataSourcesManager:
             except Exception as e:
                 self.logger.error(f"Failed to search adverse media: {e}")
                 search_results["results"]["adverse_media"] = {"error": str(e)}
+        elif "adverse_media" in source_types:
+            search_results["results"]["adverse_media"] = {"error": "Adverse media service not available"}
         
         # Search corruption data if requested
         if "corruption" in source_types:
@@ -405,21 +423,24 @@ class DataSourcesManager:
             # Get individual service statistics
             stats["sanctions"] = self.sanctions_service.get_statistics()
             stats["pep"] = await self.pep_service.get_source_statistics()
-            stats["adverse_media"] = await self.adverse_media_service.get_source_statistics()
+            if self.adverse_media_service:
+                stats["adverse_media"] = await self.adverse_media_service.get_source_statistics()
+            else:
+                stats["adverse_media"] = {"error": "Service not available"}
             stats["corruption"] = await self.corruption_service.get_corruption_statistics()
             
             # Calculate summary
             total_sources = (
                 stats["sanctions"].get("total_sources", 0) +
                 stats["pep"].get("total_sources", 0) +
-                stats["adverse_media"].get("total_sources", 0) +
+                (stats["adverse_media"].get("total_sources", 0) if self.adverse_media_service else 0) +
                 len(self.corruption_service.sources)
             )
             
             total_records = (
                 stats["sanctions"].get("total_records", 0) +
                 stats["pep"].get("total_records", 0) +
-                stats["adverse_media"].get("total_articles_collected", 0) +
+                (stats["adverse_media"].get("total_articles_collected", 0) if self.adverse_media_service else 0) +
                 stats["corruption"].get("total_cases", 0)
             )
             
@@ -436,7 +457,7 @@ class DataSourcesManager:
                     )),
                     "media_source_types": len(set(
                         source.source_type for source in self.adverse_media_service.sources.values()
-                    )),
+                    )) if self.adverse_media_service else 0,
                     "corruption_agencies": len(set(
                         source.agency_type for source in self.corruption_service.sources.values()
                     ))
@@ -477,12 +498,19 @@ class DataSourcesManager:
             }
             
             # Check adverse media service
-            media_stats = await self.adverse_media_service.get_source_statistics()
-            health_status["services"]["adverse_media"] = {
-                "status": "HEALTHY",
-                "sources_active": media_stats.get("active_sources", 0),
-                "total_sources": media_stats.get("total_sources", 0)
-            }
+            if self.adverse_media_service:
+                media_stats = await self.adverse_media_service.get_source_statistics()
+                health_status["services"]["adverse_media"] = {
+                    "status": "HEALTHY",
+                    "sources_active": media_stats.get("active_sources", 0),
+                    "total_sources": media_stats.get("total_sources", 0)
+                }
+            else:
+                health_status["services"]["adverse_media"] = {
+                    "status": "NOT_AVAILABLE",
+                    "sources_active": 0,
+                    "total_sources": 0
+                }
             
             # Check corruption service
             corruption_status = await self.corruption_service.get_source_status()

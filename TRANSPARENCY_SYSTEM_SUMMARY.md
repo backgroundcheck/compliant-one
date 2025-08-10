@@ -45,7 +45,7 @@ DASHBOARD INTEGRATION
 ================================================================================
 
 🌐 MAIN DASHBOARD (Port 8502)
-   URL: http://localhost:8502
+   URL: <http://localhost:8502>
    Login: admin/admin123
    Features:
    • 🔍 Transparency Dashboard - Integrated monitoring panel
@@ -54,7 +54,7 @@ DASHBOARD INTEGRATION
    • Integration with existing compliance services
 
 📊 DEDICATED TRANSPARENCY DASHBOARD (Port 8503)  
-   URL: http://localhost:8503
+   URL: <http://localhost:8503>
    Login: admin/admin123
    Features:
    • Advanced corruption news analysis with keyword tracking
@@ -143,12 +143,14 @@ USAGE INSTRUCTIONS
 ================================================================================
 
 🚀 QUICK START
-1. Access main dashboard: http://localhost:8502
+
+1. Access main dashboard: <http://localhost:8502>
 2. Login with credentials: admin/admin123
 3. Navigate to: 🔍 Transparency Dashboard
 4. Monitor real-time transparency data and alerts
 
 🔧 ADVANCED MANAGEMENT
+
 1. Access scraping control panel: 🕷️ Scraping Control Panel
 2. View all transparency jobs in "Manage Jobs" tab
 3. Monitor execution progress and results
@@ -156,8 +158,9 @@ USAGE INSTRUCTIONS
 5. Schedule additional scraping jobs as needed
 
 📊 DEDICATED ANALYTICS
+
 1. Launch dedicated dashboard: streamlit run transparency_dashboard.py --server.port 8503
-2. Access advanced analytics: http://localhost:8503
+2. Access advanced analytics: <http://localhost:8503>
 3. Explore corruption trends, regional analysis, and predictions
 4. Export detailed reports and data summaries
 
@@ -214,6 +217,6 @@ The Transparency International Pakistan scraping system is now:
 comprehensive corruption, governance, and compliance data for Pakistan!
 
 Access the system now:
-• Main Dashboard: http://localhost:8502 (login: admin/admin123)
-• Transparency Dashboard: http://localhost:8503 (login: admin/admin123)
+• Main Dashboard: <http://localhost:8502> (login: admin/admin123)
+• Transparency Dashboard: <http://localhost:8503> (login: admin/admin123)
 """

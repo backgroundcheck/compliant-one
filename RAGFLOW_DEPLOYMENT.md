@@ -80,6 +80,7 @@ curl http://localhost:9380/v1/health
 ```
 
 Expected services:
+
 - `ragflow-mysql`: MySQL database
 - `ragflow-redis`: Redis cache
 - `ragflow-minio`: MinIO object storage
@@ -209,6 +210,7 @@ streamlit run dashboard/ai_compliance.py --server.port 8503
 Navigate to: `http://localhost:8503`
 
 Available features:
+
 - **Document Upload**: Single and batch document processing
 - **Smart Search**: Semantic search across compliance documents
 - **AI Chat**: Compliance Q&A and guidance
@@ -291,6 +293,7 @@ docker-compose down && docker-compose up -d
 ### 8.1 Common Issues
 
 **Service won't start:**
+
 ```bash
 # Check logs
 docker-compose logs ragflow-api
@@ -300,6 +303,7 @@ docker-compose restart ragflow-api
 ```
 
 **Connection timeout:**
+
 ```bash
 # Increase timeout in .env
 RAGFLOW_TIMEOUT=600
@@ -309,6 +313,7 @@ docker-compose restart
 ```
 
 **Out of memory:**
+
 ```bash
 # Check resource usage
 docker stats
@@ -367,6 +372,7 @@ done
 ## Support
 
 For issues specific to RAGFlow integration:
+
 1. Check the logs: `docker-compose logs -f`
 2. Verify environment variables are set correctly
 3. Ensure all services are healthy

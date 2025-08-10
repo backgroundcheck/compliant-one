@@ -1,54 +1,47 @@
 """
-Advanced Case Management System - Phase 2
-📋 Intelligent Case Workflow, AI-powered Investigation Tools, Compliance Tracking
-Comprehensive Investigation Management with Automated Compliance Reporting
+Advanced Case Management System for Compliant.one
+Investigation and resolution tracking with workflow automation
 """
 
+import logging
+from typing import Dict, List, Any, Optional
+from datetime import datetime, timedelta
+from dataclasses import dataclass, field
+from enum import Enum
 import json
 import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Union
-from dataclasses import dataclass, field, asdict
-from enum import Enum
-import logging
-from pathlib import Path
-import asyncio
 
-from utils.logger import ComplianceLogger
+logger = logging.getLogger(__name__)
 
 class CaseStatus(Enum):
-    """Case status enumeration"""
-    NEW = "new"
-    ASSIGNED = "assigned"
-    IN_PROGRESS = "in_progress"
-    UNDER_REVIEW = "under_review"
-    PENDING_APPROVAL = "pending_approval"
+    """Case status options"""
+    OPEN = "open"
+    UNDER_INVESTIGATION = "under_investigation"
+    PENDING_REVIEW = "pending_review"
     ESCALATED = "escalated"
     RESOLVED = "resolved"
     CLOSED = "closed"
-    REOPENED = "reopened"
     ARCHIVED = "archived"
 
 class CasePriority(Enum):
     """Case priority levels"""
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
     CRITICAL = "critical"
-    URGENT = "urgent"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
 
-class CaseType(Enum):
-    """Types of compliance cases"""
-    AML_INVESTIGATION = "aml_investigation"
+class CaseCategory(Enum):
+    """Case categories"""
     SANCTIONS_VIOLATION = "sanctions_violation"
-    PEP_REVIEW = "pep_review"
+    AML_SUSPICIOUS_ACTIVITY = "aml_suspicious_activity"
     ADVERSE_MEDIA = "adverse_media"
+    PEP_EXPOSURE = "pep_exposure"
+    REGULATORY_BREACH = "regulatory_breach"
+    FRAUD_INVESTIGATION = "fraud_investigation"
+    COMPLIANCE_REVIEW = "compliance_review"
+    RISK_ASSESSMENT = "risk_assessment"
+    CUSTOMER_SCREENING = "customer_screening"
     TRANSACTION_MONITORING = "transaction_monitoring"
-    CUSTOMER_DUE_DILIGENCE = "customer_due_diligence"
-    SUSPICIOUS_ACTIVITY = "suspicious_activity"
-    REGULATORY_INQUIRY = "regulatory_inquiry"
-    INTERNAL_AUDIT = "internal_audit"
-    POLICY_VIOLATION = "policy_violation"
 
 class ActionType(Enum):
     """Types of case actions"""
@@ -56,1201 +49,682 @@ class ActionType(Enum):
     ASSIGNED = "assigned"
     STATUS_CHANGED = "status_changed"
     COMMENT_ADDED = "comment_added"
-    DOCUMENT_ATTACHED = "document_attached"
     EVIDENCE_ADDED = "evidence_added"
-    REVIEW_COMPLETED = "review_completed"
     ESCALATED = "escalated"
+    RESOLVED = "resolved"
     CLOSED = "closed"
-    REOPENED = "reopened"
-
-class RiskRating(Enum):
-    """Risk rating for cases"""
-    MINIMAL = "minimal"
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
+    REVIEWED = "reviewed"
+    APPROVED = "approved"
+    REJECTED = "rejected"
 
 @dataclass
 class CaseAction:
-    """Individual action/event in case history"""
+    """Individual action taken on a case"""
     action_id: str
     action_type: ActionType
-    performed_by: str
     timestamp: datetime
+    user_id: str
+    user_name: str
     description: str
     details: Dict[str, Any] = field(default_factory=dict)
     attachments: List[str] = field(default_factory=list)
 
 @dataclass
 class CaseEvidence:
-    """Evidence item for a case"""
+    """Evidence attached to a case"""
     evidence_id: str
-    evidence_type: str  # document, screenshot, data_export, etc.
+    evidence_type: str  # "document", "screenshot", "data", "link"
     title: str
     description: str
     file_path: Optional[str] = None
     content: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
-    collected_by: str = "system"
-    collected_at: datetime = field(default_factory=datetime.now)
-    hash_value: Optional[str] = None  # For integrity verification
+    uploaded_by: str = ""
+    uploaded_at: datetime = field(default_factory=datetime.now)
 
 @dataclass
 class CaseTask:
-    """Task within a case"""
+    """Individual task within a case"""
     task_id: str
     title: str
     description: str
-    assigned_to: Optional[str] = None
+    assigned_to: str
     due_date: Optional[datetime] = None
     completed: bool = False
-    completed_by: Optional[str] = None
     completed_at: Optional[datetime] = None
+    completed_by: Optional[str] = None
     priority: CasePriority = CasePriority.MEDIUM
-    dependencies: List[str] = field(default_factory=list)  # Other task IDs
-    estimated_hours: Optional[float] = None
-    actual_hours: Optional[float] = None
+    dependencies: List[str] = field(default_factory=list)
 
 @dataclass
-class ComplianceCase:
-    """Main case entity"""
+class Case:
+    """Complete case record"""
     case_id: str
-    case_number: str  # Human-readable case number
     title: str
     description: str
-    case_type: CaseType
-    status: CaseStatus
+    category: CaseCategory
     priority: CasePriority
-    risk_rating: RiskRating
+    status: CaseStatus
     
-    # Parties involved
+    # Entity information
+    entity_name: str
+    entity_type: str
+    
+    # Assignment and tracking
+    assigned_to: str
     created_by: str
-    assigned_to: Optional[str] = None
-    entity_id: Optional[str] = None  # Customer/entity being investigated
-    entity_name: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
     
-    # Timestamps
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
+    # Optional fields with defaults
+    entity_id: Optional[str] = None
     due_date: Optional[datetime] = None
+    resolved_at: Optional[datetime] = None
     closed_at: Optional[datetime] = None
     
-    # Case content
+    # Content
     actions: List[CaseAction] = field(default_factory=list)
     evidence: List[CaseEvidence] = field(default_factory=list)
     tasks: List[CaseTask] = field(default_factory=list)
     tags: List[str] = field(default_factory=list)
     
-    # Compliance tracking
-    regulatory_refs: List[str] = field(default_factory=list)  # FATF R.10, etc.
-    compliance_requirements: List[str] = field(default_factory=list)
-    
-    # Analysis results
-    ai_analysis: Dict[str, Any] = field(default_factory=dict)
-    investigation_findings: Dict[str, Any] = field(default_factory=dict)
-    final_determination: Optional[str] = None
+    # Risk and compliance
+    risk_score: float = 0.0
+    compliance_impact: str = ""
+    regulatory_requirements: List[str] = field(default_factory=list)
     
     # Metadata
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-@dataclass
-class CaseTemplate:
-    """Template for creating standard cases"""
-    template_id: str
-    name: str
-    description: str
-    case_type: CaseType
-    default_priority: CasePriority
-    default_tasks: List[Dict[str, Any]] = field(default_factory=list)
-    required_evidence: List[str] = field(default_factory=list)
-    compliance_requirements: List[str] = field(default_factory=list)
-    estimated_duration_days: Optional[int] = None
-
-class CaseWorkflowEngine:
-    """Engine for managing case workflows and automation"""
+class CaseWorkflow:
+    """Automated workflow for case management"""
     
-    def __init__(self, config: Dict = None):
-        self.config = config or {}
-        self.logger = ComplianceLogger("case_workflow_engine")
+    def __init__(self, workflow_id: str, name: str):
+        self.workflow_id = workflow_id
+        self.name = name
+        self.steps = []
+        self.triggers = []
+        self.conditions = {}
         
-        # Workflow rules
-        self.status_transitions = self._define_status_transitions()
-        self.auto_assignment_rules = self._define_assignment_rules()
-        self.escalation_rules = self._define_escalation_rules()
-        
-        # SLA configurations
-        self.sla_config = self._define_sla_config()
-    
-    def _define_status_transitions(self) -> Dict[CaseStatus, List[CaseStatus]]:
-        """Define allowed status transitions"""
-        return {
-            CaseStatus.NEW: [CaseStatus.ASSIGNED, CaseStatus.IN_PROGRESS, CaseStatus.CLOSED],
-            CaseStatus.ASSIGNED: [CaseStatus.IN_PROGRESS, CaseStatus.UNDER_REVIEW, CaseStatus.ESCALATED],
-            CaseStatus.IN_PROGRESS: [CaseStatus.UNDER_REVIEW, CaseStatus.PENDING_APPROVAL, CaseStatus.ESCALATED, CaseStatus.RESOLVED],
-            CaseStatus.UNDER_REVIEW: [CaseStatus.IN_PROGRESS, CaseStatus.PENDING_APPROVAL, CaseStatus.RESOLVED, CaseStatus.ESCALATED],
-            CaseStatus.PENDING_APPROVAL: [CaseStatus.RESOLVED, CaseStatus.IN_PROGRESS, CaseStatus.ESCALATED],
-            CaseStatus.ESCALATED: [CaseStatus.IN_PROGRESS, CaseStatus.UNDER_REVIEW, CaseStatus.RESOLVED],
-            CaseStatus.RESOLVED: [CaseStatus.CLOSED, CaseStatus.REOPENED],
-            CaseStatus.CLOSED: [CaseStatus.REOPENED, CaseStatus.ARCHIVED],
-            CaseStatus.ARCHIVED: []  # Final state
+    def add_step(self, step_id: str, action: str, conditions: Dict[str, Any] = None):
+        """Add a workflow step"""
+        step = {
+            'step_id': step_id,
+            'action': action,
+            'conditions': conditions or {},
+            'auto_execute': conditions is None
         }
+        self.steps.append(step)
     
-    def _define_assignment_rules(self) -> Dict[str, Any]:
-        """Define automatic assignment rules"""
-        return {
-            CaseType.SANCTIONS_VIOLATION: {
-                'queue': 'sanctions_team',
-                'auto_assign': True,
-                'priority_boost': True
-            },
-            CaseType.PEP_REVIEW: {
-                'queue': 'pep_team',
-                'auto_assign': True,
-                'priority_boost': False
-            },
-            CaseType.AML_INVESTIGATION: {
-                'queue': 'aml_investigators',
-                'auto_assign': False,
-                'priority_boost': True
-            },
-            CaseType.TRANSACTION_MONITORING: {
-                'queue': 'transaction_analysts',
-                'auto_assign': True,
-                'priority_boost': False
-            }
-        }
-    
-    def _define_escalation_rules(self) -> List[Dict[str, Any]]:
-        """Define escalation rules"""
-        return [
-            {
-                'name': 'High Priority Overdue',
-                'condition': {
-                    'priority': [CasePriority.HIGH, CasePriority.CRITICAL, CasePriority.URGENT],
-                    'overdue_hours': 24
-                },
-                'action': 'escalate_to_manager'
-            },
-            {
-                'name': 'Critical Case Stale',
-                'condition': {
-                    'priority': [CasePriority.CRITICAL, CasePriority.URGENT],
-                    'inactive_hours': 4
-                },
-                'action': 'alert_senior_management'
-            },
-            {
-                'name': 'Sanctions Case Overdue',
-                'condition': {
-                    'case_type': [CaseType.SANCTIONS_VIOLATION],
-                    'overdue_hours': 2
-                },
-                'action': 'immediate_escalation'
-            }
-        ]
-    
-    def _define_sla_config(self) -> Dict[str, Dict[str, int]]:
-        """Define SLA configurations (hours)"""
-        return {
-            CaseType.SANCTIONS_VIOLATION.value: {
-                'initial_response': 1,
-                'investigation': 24,
-                'resolution': 72
-            },
-            CaseType.PEP_REVIEW.value: {
-                'initial_response': 4,
-                'investigation': 48,
-                'resolution': 120
-            },
-            CaseType.AML_INVESTIGATION.value: {
-                'initial_response': 8,
-                'investigation': 72,
-                'resolution': 240
-            },
-            CaseType.TRANSACTION_MONITORING.value: {
-                'initial_response': 2,
-                'investigation': 24,
-                'resolution': 96
-            },
-            CaseType.ADVERSE_MEDIA.value: {
-                'initial_response': 8,
-                'investigation': 48,
-                'resolution': 168
-            }
-        }
-    
-    def validate_status_transition(self, current_status: CaseStatus, new_status: CaseStatus) -> bool:
-        """Validate if status transition is allowed"""
-        allowed_transitions = self.status_transitions.get(current_status, [])
-        return new_status in allowed_transitions
-    
-    def get_auto_assignment(self, case_type: CaseType) -> Optional[Dict[str, Any]]:
-        """Get auto-assignment configuration for case type"""
-        return self.auto_assignment_rules.get(case_type)
-    
-    def check_escalation_rules(self, case: ComplianceCase) -> List[str]:
-        """Check if case meets escalation criteria"""
-        triggered_rules = []
-        now = datetime.now()
+    def can_execute_step(self, step: Dict[str, Any], case: Case) -> bool:
+        """Check if a workflow step can be executed"""
+        if step['auto_execute']:
+            return True
         
-        for rule in self.escalation_rules:
-            condition = rule['condition']
-            
-            # Check priority condition
-            if 'priority' in condition and case.priority not in condition['priority']:
-                continue
-            
-            # Check case type condition
-            if 'case_type' in condition and case.case_type not in condition['case_type']:
-                continue
-            
-            # Check overdue condition
-            if 'overdue_hours' in condition and case.due_date:
-                if now > case.due_date + timedelta(hours=condition['overdue_hours']):
-                    triggered_rules.append(rule['name'])
-                    continue
-            
-            # Check inactive condition
-            if 'inactive_hours' in condition:
-                last_action_time = case.updated_at
-                if case.actions:
-                    last_action_time = max(action.timestamp for action in case.actions)
-                
-                if now > last_action_time + timedelta(hours=condition['inactive_hours']):
-                    triggered_rules.append(rule['name'])
+        conditions = step.get('conditions', {})
         
-        return triggered_rules
-    
-    def calculate_sla_deadlines(self, case: ComplianceCase) -> Dict[str, datetime]:
-        """Calculate SLA deadlines for case"""
-        sla_config = self.sla_config.get(case.case_type.value, {})
-        deadlines = {}
+        # Check status conditions
+        if 'required_status' in conditions:
+            if case.status.value != conditions['required_status']:
+                return False
         
-        for milestone, hours in sla_config.items():
-            deadline = case.created_at + timedelta(hours=hours)
-            deadlines[milestone] = deadline
+        # Check priority conditions
+        if 'min_priority' in conditions:
+            priority_order = {'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
+            if priority_order.get(case.priority.value, 0) < priority_order.get(conditions['min_priority'], 0):
+                return False
         
-        return deadlines
-
-class CaseAnalyticsEngine:
-    """AI-powered analytics engine for case insights"""
-    
-    def __init__(self, config: Dict = None):
-        self.config = config or {}
-        self.logger = ComplianceLogger("case_analytics_engine")
-    
-    async def analyze_case(self, case: ComplianceCase) -> Dict[str, Any]:
-        """Perform AI analysis on case"""
-        analysis = {
-            'case_id': case.case_id,
-            'analysis_timestamp': datetime.now().isoformat(),
-            'risk_assessment': await self._assess_case_risk(case),
-            'pattern_analysis': await self._analyze_patterns(case),
-            'entity_analysis': await self._analyze_entity(case),
-            'timeline_analysis': await self._analyze_timeline(case),
-            'recommendations': await self._generate_recommendations(case),
-            'confidence_score': 0.0
-        }
+        # Check time conditions
+        if 'max_age_hours' in conditions:
+            age_hours = (datetime.now() - case.created_at).total_seconds() / 3600
+            if age_hours > conditions['max_age_hours']:
+                return False
         
-        # Calculate overall confidence
-        analysis['confidence_score'] = self._calculate_confidence(analysis)
-        
-        return analysis
-    
-    async def _assess_case_risk(self, case: ComplianceCase) -> Dict[str, Any]:
-        """Assess risk level and factors for case"""
-        risk_factors = []
-        risk_score = 0.0
-        
-        # Case type risk weighting
-        type_risk_weights = {
-            CaseType.SANCTIONS_VIOLATION: 0.9,
-            CaseType.AML_INVESTIGATION: 0.8,
-            CaseType.PEP_REVIEW: 0.7,
-            CaseType.SUSPICIOUS_ACTIVITY: 0.8,
-            CaseType.ADVERSE_MEDIA: 0.6,
-            CaseType.TRANSACTION_MONITORING: 0.5
-        }
-        
-        base_risk = type_risk_weights.get(case.case_type, 0.5)
-        risk_score += base_risk * 0.4
-        
-        # Priority impact
-        priority_weights = {
-            CasePriority.CRITICAL: 0.9,
-            CasePriority.URGENT: 0.8,
-            CasePriority.HIGH: 0.7,
-            CasePriority.MEDIUM: 0.5,
-            CasePriority.LOW: 0.3
-        }
-        
-        priority_impact = priority_weights.get(case.priority, 0.5)
-        risk_score += priority_impact * 0.3
-        
-        # Evidence analysis
-        if case.evidence:
-            high_risk_evidence = len([e for e in case.evidence if 'high_risk' in e.metadata.get('tags', [])])
-            evidence_impact = min(0.3, high_risk_evidence * 0.1)
-            risk_score += evidence_impact
-            
-            if high_risk_evidence > 0:
-                risk_factors.append(f"{high_risk_evidence} high-risk evidence items")
-        
-        # Timeline factors
-        if case.due_date and datetime.now() > case.due_date:
-            risk_factors.append("Case overdue")
-            risk_score += 0.2
-        
-        # Determine risk level
-        if risk_score >= 0.8:
-            risk_level = RiskRating.CRITICAL
-        elif risk_score >= 0.6:
-            risk_level = RiskRating.HIGH
-        elif risk_score >= 0.4:
-            risk_level = RiskRating.MEDIUM
-        elif risk_score >= 0.2:
-            risk_level = RiskRating.LOW
-        else:
-            risk_level = RiskRating.MINIMAL
-        
-        return {
-            'risk_level': risk_level.value,
-            'risk_score': round(risk_score, 3),
-            'risk_factors': risk_factors,
-            'type_based_risk': base_risk,
-            'priority_impact': priority_impact
-        }
-    
-    async def _analyze_patterns(self, case: ComplianceCase) -> Dict[str, Any]:
-        """Analyze patterns in case data"""
-        patterns = {
-            'temporal_patterns': [],
-            'behavioral_patterns': [],
-            'network_patterns': [],
-            'anomalies': []
-        }
-        
-        # Analyze action patterns
-        if case.actions:
-            action_intervals = []
-            for i in range(1, len(case.actions)):
-                interval = (case.actions[i].timestamp - case.actions[i-1].timestamp).total_seconds() / 3600
-                action_intervals.append(interval)
-            
-            if action_intervals:
-                avg_interval = sum(action_intervals) / len(action_intervals)
-                patterns['temporal_patterns'].append(f"Average action interval: {avg_interval:.1f} hours")
-                
-                # Detect unusual gaps
-                long_gaps = [interval for interval in action_intervals if interval > avg_interval * 3]
-                if long_gaps:
-                    patterns['anomalies'].append(f"{len(long_gaps)} unusually long gaps between actions")
-        
-        # Analyze evidence patterns
-        if case.evidence:
-            evidence_types = {}
-            for evidence in case.evidence:
-                evidence_types[evidence.evidence_type] = evidence_types.get(evidence.evidence_type, 0) + 1
-            
-            patterns['behavioral_patterns'].append(f"Evidence distribution: {evidence_types}")
-        
-        return patterns
-    
-    async def _analyze_entity(self, case: ComplianceCase) -> Dict[str, Any]:
-        """Analyze entity involved in case"""
-        entity_analysis = {
-            'entity_id': case.entity_id,
-            'entity_name': case.entity_name,
-            'risk_indicators': [],
-            'historical_cases': 0,
-            'relationship_analysis': {}
-        }
-        
-        if case.entity_id:
-            # Mock historical case analysis
-            entity_analysis['historical_cases'] = 2  # Would query actual case history
-            entity_analysis['risk_indicators'] = ['previous_investigations', 'geographic_risk']
-        
-        return entity_analysis
-    
-    async def _analyze_timeline(self, case: ComplianceCase) -> Dict[str, Any]:
-        """Analyze case timeline and milestones"""
-        timeline_analysis = {
-            'case_age_days': (datetime.now() - case.created_at).days,
-            'action_frequency': 0.0,
-            'milestone_compliance': {},
-            'predicted_resolution_date': None
-        }
-        
-        # Calculate action frequency
-        if case.actions:
-            case_duration_hours = (datetime.now() - case.created_at).total_seconds() / 3600
-            timeline_analysis['action_frequency'] = len(case.actions) / max(case_duration_hours, 1)
-        
-        # Predict resolution date based on case type and current progress
-        case_type_avg_days = {
-            CaseType.SANCTIONS_VIOLATION: 3,
-            CaseType.PEP_REVIEW: 5,
-            CaseType.AML_INVESTIGATION: 10,
-            CaseType.TRANSACTION_MONITORING: 4,
-            CaseType.ADVERSE_MEDIA: 7
-        }
-        
-        avg_duration = case_type_avg_days.get(case.case_type, 7)
-        predicted_date = case.created_at + timedelta(days=avg_duration)
-        timeline_analysis['predicted_resolution_date'] = predicted_date.isoformat()
-        
-        return timeline_analysis
-    
-    async def _generate_recommendations(self, case: ComplianceCase) -> List[str]:
-        """Generate AI-powered recommendations for case"""
-        recommendations = []
-        
-        # Status-based recommendations
-        if case.status == CaseStatus.NEW:
-            recommendations.append("Assign case to appropriate investigator")
-            recommendations.append("Conduct initial risk assessment")
-        
-        elif case.status == CaseStatus.IN_PROGRESS:
-            if not case.evidence:
-                recommendations.append("Collect supporting evidence")
-            
-            if len(case.actions) < 3:
-                recommendations.append("Document investigation steps")
-        
-        # Type-specific recommendations
-        if case.case_type == CaseType.SANCTIONS_VIOLATION:
-            recommendations.append("Verify sanctions list matches")
-            recommendations.append("Document compliance remediation steps")
-        
-        elif case.case_type == CaseType.PEP_REVIEW:
-            recommendations.append("Conduct enhanced due diligence")
-            recommendations.append("Review source of wealth documentation")
-        
-        # Priority-based recommendations
-        if case.priority in [CasePriority.CRITICAL, CasePriority.URGENT]:
-            recommendations.append("Escalate to senior management")
-            recommendations.append("Consider immediate risk mitigation")
-        
-        # Timeline recommendations
-        if case.due_date and datetime.now() > case.due_date:
-            recommendations.append("Address overdue status")
-            recommendations.append("Update timeline estimates")
-        
-        return recommendations
-    
-    def _calculate_confidence(self, analysis: Dict[str, Any]) -> float:
-        """Calculate confidence score for analysis"""
-        confidence_factors = []
-        
-        # Risk assessment confidence
-        risk_assessment = analysis.get('risk_assessment', {})
-        if risk_assessment.get('risk_factors'):
-            confidence_factors.append(0.8)
-        else:
-            confidence_factors.append(0.6)
-        
-        # Pattern analysis confidence
-        patterns = analysis.get('pattern_analysis', {})
-        pattern_count = sum(len(patterns.get(key, [])) for key in patterns)
-        pattern_confidence = min(0.9, 0.3 + pattern_count * 0.1)
-        confidence_factors.append(pattern_confidence)
-        
-        # Entity analysis confidence
-        entity_analysis = analysis.get('entity_analysis', {})
-        if entity_analysis.get('entity_id'):
-            confidence_factors.append(0.8)
-        else:
-            confidence_factors.append(0.5)
-        
-        return sum(confidence_factors) / len(confidence_factors)
+        return True
 
 class CaseManagementSystem:
-    """Comprehensive case management system"""
+    """Advanced case management system with workflow automation"""
     
-    def __init__(self, config: Dict = None):
+    def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
-        self.logger = ComplianceLogger("case_management_system")
-        
-        # Storage
-        self.cases: Dict[str, ComplianceCase] = {}
-        self.templates: Dict[str, CaseTemplate] = {}
-        
-        # Configuration with safe access
-        self.config = config or {}
-        
-        # Engines
-        workflow_config = self.config.get('workflow', {}) if self.config else {}
-        analytics_config = self.config.get('analytics', {}) if self.config else {}
-        
-        self.workflow_engine = CaseWorkflowEngine(workflow_config)
-        self.analytics_engine = CaseAnalyticsEngine(analytics_config)
-        
-        # Configuration
-        self.auto_save = self.config.get('auto_save', True)
-        self.cases_file = self.config.get('cases_file', 'data/cases.json')
-        self.templates_file = self.config.get('templates_file', 'data/case_templates.json')
-        
-        # Counters for case numbering
-        self.case_counter = 1
-        
-        # Load existing data
-        self._load_data()
-        
-        # Initialize default templates
-        self._initialize_default_templates()
+        self.cases: Dict[str, Case] = {}
+        self.workflows: Dict[str, CaseWorkflow] = {}
+        self.templates = self._create_default_templates()
+        self.auto_assignment_rules = []
+        self.escalation_rules = []
+        self._initialize_default_workflows()
     
-    def _load_data(self):
-        """Load cases and templates from storage"""
-        try:
-            # Load cases
-            cases_path = Path(self.cases_file)
-            if cases_path.exists():
-                with open(cases_path, 'r') as f:
-                    cases_data = json.load(f)
-                    
-                for case_data in cases_data:
-                    case = self._deserialize_case(case_data)
-                    self.cases[case.case_id] = case
-                
-                # Update counter
-                if self.cases:
-                    max_number = max(int(case.case_number.split('-')[1]) for case in self.cases.values() if '-' in case.case_number)
-                    self.case_counter = max_number + 1
-                
-                self.logger.logger.info(f"Loaded {len(self.cases)} cases from {self.cases_file}")
-            
-            # Load templates
-            templates_path = Path(self.templates_file)
-            if templates_path.exists():
-                with open(templates_path, 'r') as f:
-                    templates_data = json.load(f)
-                    
-                for template_data in templates_data:
-                    template = self._deserialize_template(template_data)
-                    self.templates[template.template_id] = template
-                
-                self.logger.logger.info(f"Loaded {len(self.templates)} templates from {self.templates_file}")
-        
-        except Exception as e:
-            self.logger.logger.error(f"Error loading data: {e}")
-    
-    def _save_data(self):
-        """Save cases and templates to storage"""
-        if not self.auto_save:
-            return
-        
-        try:
-            # Save cases
-            cases_path = Path(self.cases_file)
-            cases_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            cases_data = [self._serialize_case(case) for case in self.cases.values()]
-            
-            with open(cases_path, 'w') as f:
-                json.dump(cases_data, f, indent=2, default=str)
-            
-            # Save templates
-            templates_path = Path(self.templates_file)
-            templates_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            templates_data = [asdict(template) for template in self.templates.values()]
-            
-            with open(templates_path, 'w') as f:
-                json.dump(templates_data, f, indent=2, default=str)
-            
-            self.logger.logger.info("Saved cases and templates to storage")
-        
-        except Exception as e:
-            self.logger.logger.error(f"Error saving data: {e}")
-    
-    def _serialize_case(self, case: ComplianceCase) -> Dict[str, Any]:
-        """Serialize case to dictionary"""
-        case_dict = asdict(case)
-        
-        # Convert enums to strings
-        case_dict['case_type'] = case.case_type.value
-        case_dict['status'] = case.status.value
-        case_dict['priority'] = case.priority.value
-        case_dict['risk_rating'] = case.risk_rating.value
-        
-        # Convert action enums
-        for action in case_dict['actions']:
-            action['action_type'] = action['action_type']
-        
-        # Convert task enums
-        for task in case_dict['tasks']:
-            task['priority'] = task['priority']
-        
-        return case_dict
-    
-    def _parse_enum_value(self, enum_class, value_str: str):
-        """Parse enum value handling both 'EnumClass.VALUE' and 'value' formats"""
-        if isinstance(value_str, str):
-            # Handle 'EnumClass.VALUE' format
-            if '.' in value_str:
-                value_str = value_str.split('.')[-1]
-            
-            # Convert to lowercase for enum lookup
-            if enum_class == CaseType:
-                case_map = {
-                    'AML_INVESTIGATION': 'aml_investigation',
-                    'SANCTIONS_VIOLATION': 'sanctions_violation',
-                    'PEP_REVIEW': 'pep_review',
-                    'ADVERSE_MEDIA': 'adverse_media',
-                    'TRANSACTION_MONITORING': 'transaction_monitoring',
-                    'CUSTOMER_DUE_DILIGENCE': 'customer_due_diligence',
-                    'SUSPICIOUS_ACTIVITY': 'suspicious_activity',
-                    'REGULATORY_INQUIRY': 'regulatory_inquiry',
-                    'INTERNAL_AUDIT': 'internal_audit',
-                    'POLICY_VIOLATION': 'policy_violation'
-                }
-                value_str = case_map.get(value_str, value_str.lower())
-            elif enum_class == CasePriority:
-                priority_map = {
-                    'URGENT': 'urgent',
-                    'CRITICAL': 'critical',
-                    'HIGH': 'high',
-                    'MEDIUM': 'medium',
-                    'LOW': 'low'
-                }
-                value_str = priority_map.get(value_str, value_str.lower())
-            elif enum_class == CaseStatus:
-                status_map = {
-                    'OPEN': 'open',
-                    'IN_PROGRESS': 'in_progress',
-                    'PENDING_REVIEW': 'pending_review',
-                    'ESCALATED': 'escalated',
-                    'RESOLVED': 'resolved',
-                    'CLOSED': 'closed',
-                    'ARCHIVED': 'archived'
-                }
-                value_str = status_map.get(value_str, value_str.lower())
-            elif enum_class == RiskRating:
-                risk_map = {
-                    'MINIMAL': 'minimal',
-                    'LOW': 'low',
-                    'MEDIUM': 'medium',
-                    'HIGH': 'high',
-                    'CRITICAL': 'critical'
-                }
-                value_str = risk_map.get(value_str, value_str.lower())
-        
-        return enum_class(value_str)
-    
-    def _deserialize_case(self, case_data: Dict[str, Any]) -> ComplianceCase:
-        """Deserialize case from dictionary"""
-        try:
-            # Convert enum strings back to enums
-            case_data['case_type'] = self._parse_enum_value(CaseType, case_data['case_type'])
-            case_data['status'] = self._parse_enum_value(CaseStatus, case_data['status'])
-            case_data['priority'] = self._parse_enum_value(CasePriority, case_data['priority'])
-            case_data['risk_rating'] = self._parse_enum_value(RiskRating, case_data['risk_rating'])
-            
-            # Convert datetime strings
-            datetime_fields = ['created_at', 'updated_at', 'due_date', 'closed_at']
-            for field in datetime_fields:
-                if case_data.get(field) and isinstance(case_data[field], str):
-                    case_data[field] = datetime.fromisoformat(case_data[field])
-            
-            # Convert actions
-            actions = []
-            for action_data in case_data.get('actions', []):
-                action_data['action_type'] = ActionType(action_data['action_type'])
-                action_data['timestamp'] = datetime.fromisoformat(action_data['timestamp'])
-                actions.append(CaseAction(**action_data))
-            case_data['actions'] = actions
-            
-            # Convert evidence
-            evidence = []
-            for evidence_data in case_data.get('evidence', []):
-                if evidence_data.get('collected_at') and isinstance(evidence_data['collected_at'], str):
-                    evidence_data['collected_at'] = datetime.fromisoformat(evidence_data['collected_at'])
-                evidence.append(CaseEvidence(**evidence_data))
-            case_data['evidence'] = evidence
-            
-            # Convert tasks
-            tasks = []
-            for task_data in case_data.get('tasks', []):
-                task_data['priority'] = CasePriority(task_data['priority'])
-                datetime_fields = ['due_date', 'completed_at']
-                for field in datetime_fields:
-                    if task_data.get(field) and isinstance(task_data[field], str):
-                        task_data[field] = datetime.fromisoformat(task_data[field])
-                tasks.append(CaseTask(**task_data))
-            case_data['tasks'] = tasks
-            
-            return ComplianceCase(**case_data)
-        except Exception as e:
-            self.logger.logger.error(f"Error deserializing case {case_data.get('case_id', 'unknown')}: {e}")
-            raise
-    
-    def _deserialize_template(self, template_data: Dict[str, Any]) -> CaseTemplate:
-        """Deserialize template from dictionary"""
-        try:
-            template_data['case_type'] = self._parse_enum_value(CaseType, template_data['case_type'])
-            template_data['default_priority'] = self._parse_enum_value(CasePriority, template_data['default_priority'])
-            return CaseTemplate(**template_data)
-        except Exception as e:
-            self.logger.logger.error(f"Error deserializing template {template_data.get('template_id', 'unknown')}: {e}")
-            raise
-    
-    def _initialize_default_templates(self):
-        """Initialize default case templates"""
-        if self.templates:
-            return  # Templates already loaded
-        
-        default_templates = [
-            CaseTemplate(
-                template_id="TMPL_SANCTIONS",
-                name="Sanctions Screening Investigation",
-                description="Template for sanctions screening violations",
-                case_type=CaseType.SANCTIONS_VIOLATION,
-                default_priority=CasePriority.CRITICAL,
-                default_tasks=[
+    def _create_default_templates(self) -> Dict[str, Dict[str, Any]]:
+        """Create default case templates"""
+        return {
+            "sanctions_screening": {
+                "title": "Sanctions Screening Alert",
+                "category": CaseCategory.SANCTIONS_VIOLATION,
+                "priority": CasePriority.CRITICAL,
+                "description": "Potential sanctions list match requiring immediate investigation",
+                "default_tasks": [
                     {
-                        'title': 'Verify sanctions match',
-                        'description': 'Confirm entity match against sanctions lists',
-                        'estimated_hours': 2
+                        "title": "Verify Entity Identity",
+                        "description": "Confirm the identity of the flagged entity"
                     },
                     {
-                        'title': 'Document compliance measures',
-                        'description': 'Record all compliance and remediation actions',
-                        'estimated_hours': 4
+                        "title": "Review Sanctions Match",
+                        "description": "Analyze the sanctions list match details"
                     },
                     {
-                        'title': 'Report to authorities',
-                        'description': 'File required regulatory reports',
-                        'estimated_hours': 2
+                        "title": "Document Decision",
+                        "description": "Record the final screening decision and rationale"
                     }
                 ],
-                required_evidence=['sanctions_list_match', 'entity_verification', 'compliance_documentation'],
-                compliance_requirements=['FATF_R.6', 'FATF_R.7'],
-                estimated_duration_days=3
-            ),
-            
-            CaseTemplate(
-                template_id="TMPL_PEP",
-                name="PEP Enhanced Due Diligence",
-                description="Template for PEP customer review",
-                case_type=CaseType.PEP_REVIEW,
-                default_priority=CasePriority.HIGH,
-                default_tasks=[
+                "regulatory_requirements": ["OFAC Compliance", "EU Sanctions"],
+                "due_days": 1
+            },
+            "aml_investigation": {
+                "title": "AML Suspicious Activity Investigation",
+                "category": CaseCategory.AML_SUSPICIOUS_ACTIVITY,
+                "priority": CasePriority.HIGH,
+                "description": "Investigation of suspicious transaction patterns",
+                "default_tasks": [
                     {
-                        'title': 'Verify PEP status',
-                        'description': 'Confirm politically exposed person classification',
-                        'estimated_hours': 3
+                        "title": "Analyze Transaction Patterns",
+                        "description": "Review suspicious transaction activity"
                     },
                     {
-                        'title': 'Enhanced due diligence',
-                        'description': 'Conduct comprehensive background review',
-                        'estimated_hours': 8
+                        "title": "Customer Due Diligence",
+                        "description": "Conduct enhanced due diligence on customer"
                     },
                     {
-                        'title': 'Source of wealth verification',
-                        'description': 'Verify and document source of wealth',
-                        'estimated_hours': 6
-                    },
-                    {
-                        'title': 'Risk assessment',
-                        'description': 'Complete risk rating and approval process',
-                        'estimated_hours': 2
+                        "title": "Determine SAR Filing",
+                        "description": "Decide if Suspicious Activity Report is required"
                     }
                 ],
-                required_evidence=['pep_verification', 'source_of_wealth', 'enhanced_due_diligence'],
-                compliance_requirements=['FATF_R.12'],
-                estimated_duration_days=5
-            ),
-            
-            CaseTemplate(
-                template_id="TMPL_AML",
-                name="AML Investigation",
-                description="Template for anti-money laundering investigations",
-                case_type=CaseType.AML_INVESTIGATION,
-                default_priority=CasePriority.HIGH,
-                default_tasks=[
+                "regulatory_requirements": ["BSA/AML", "FinCEN Requirements"],
+                "due_days": 5
+            },
+            "adverse_media_review": {
+                "title": "Adverse Media Review",
+                "category": CaseCategory.ADVERSE_MEDIA,
+                "priority": CasePriority.MEDIUM,
+                "description": "Review and assess adverse media findings",
+                "default_tasks": [
                     {
-                        'title': 'Transaction analysis',
-                        'description': 'Analyze suspicious transaction patterns',
-                        'estimated_hours': 6
+                        "title": "Verify Media Reports",
+                        "description": "Confirm accuracy of adverse media findings"
                     },
                     {
-                        'title': 'Customer background review',
-                        'description': 'Review customer history and profile',
-                        'estimated_hours': 4
+                        "title": "Assess Risk Impact",
+                        "description": "Evaluate reputational and compliance risk"
                     },
                     {
-                        'title': 'External data gathering',
-                        'description': 'Collect external intelligence and verification',
-                        'estimated_hours': 8
-                    },
-                    {
-                        'title': 'Determination and reporting',
-                        'description': 'Make final determination and file reports',
-                        'estimated_hours': 4
+                        "title": "Update Risk Profile",
+                        "description": "Update entity risk assessment based on findings"
                     }
                 ],
-                required_evidence=['transaction_records', 'customer_profile', 'external_intelligence'],
-                compliance_requirements=['FATF_R.20', 'FATF_R.29'],
-                estimated_duration_days=10
-            )
-        ]
-        
-        for template in default_templates:
-            self.templates[template.template_id] = template
-            
-        self._save_data()
-        self.logger.logger.info(f"Initialized {len(default_templates)} default templates")
+                "regulatory_requirements": ["Enhanced Due Diligence"],
+                "due_days": 10
+            }
+        }
     
-    def create_case(self, title: str, description: str, case_type: CaseType,
-                   created_by: str, entity_id: Optional[str] = None,
-                   entity_name: Optional[str] = None, template_id: Optional[str] = None,
-                   priority: Optional[CasePriority] = None) -> ComplianceCase:
-        """Create a new case"""
+    def _initialize_default_workflows(self):
+        """Initialize default workflows"""
+        # High-priority case workflow
+        high_priority_workflow = CaseWorkflow("high_priority", "High Priority Case Workflow")
+        high_priority_workflow.add_step("immediate_assignment", "auto_assign")
+        high_priority_workflow.add_step("notification", "send_alert")
+        high_priority_workflow.add_step("escalation_check", "check_escalation", 
+                                      {"max_age_hours": 24})
+        self.workflows["high_priority"] = high_priority_workflow
         
-        # Generate case ID and number
+        # Standard investigation workflow
+        standard_workflow = CaseWorkflow("standard", "Standard Investigation Workflow")
+        standard_workflow.add_step("assignment", "auto_assign")
+        standard_workflow.add_step("initial_review", "schedule_review", 
+                                 {"required_status": "open"})
+        standard_workflow.add_step("escalation_check", "check_escalation", 
+                                 {"max_age_hours": 72})
+        self.workflows["standard"] = standard_workflow
+    
+    def create_case_from_template(self, template_name: str, entity_name: str, 
+                                entity_type: str, assigned_to: str, 
+                                created_by: str, **kwargs) -> Case:
+        """Create a case from a predefined template"""
+        if template_name not in self.templates:
+            raise ValueError(f"Template '{template_name}' not found")
+        
+        template = self.templates[template_name]
         case_id = str(uuid.uuid4())
-        case_number = f"CASE-{self.case_counter:06d}"
-        self.case_counter += 1
         
-        # Use template if specified
-        template = None
-        if template_id:
-            template = self.templates.get(template_id)
-        
-        # Determine priority
-        if priority is None:
-            priority = template.default_priority if template else CasePriority.MEDIUM
+        # Calculate due date
+        due_date = None
+        if 'due_days' in template:
+            due_date = datetime.now() + timedelta(days=template['due_days'])
         
         # Create case
-        case = ComplianceCase(
+        case = Case(
             case_id=case_id,
-            case_number=case_number,
-            title=title,
-            description=description,
-            case_type=case_type,
-            status=CaseStatus.NEW,
-            priority=priority,
-            risk_rating=RiskRating.MEDIUM,  # Will be updated by analytics
+            title=template['title'],
+            description=template['description'],
+            category=template['category'],
+            priority=template['priority'],
+            status=CaseStatus.OPEN,
+            entity_name=entity_name,
+            entity_type=entity_type,
+            assigned_to=assigned_to,
             created_by=created_by,
-            entity_id=entity_id,
-            entity_name=entity_name
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            due_date=due_date,
+            regulatory_requirements=template.get('regulatory_requirements', [])
         )
         
-        # Apply template
-        if template:
-            self._apply_template(case, template)
+        # Apply any additional parameters
+        for key, value in kwargs.items():
+            if hasattr(case, key):
+                setattr(case, key, value)
         
-        # Calculate SLA deadlines
-        sla_deadlines = self.workflow_engine.calculate_sla_deadlines(case)
-        if 'resolution' in sla_deadlines:
-            case.due_date = sla_deadlines['resolution']
-        
-        # Add creation action
-        creation_action = CaseAction(
+        # Create initial action
+        initial_action = CaseAction(
             action_id=str(uuid.uuid4()),
             action_type=ActionType.CREATED,
-            performed_by=created_by,
             timestamp=datetime.now(),
-            description=f"Case created: {title}"
+            user_id=created_by,
+            user_name=created_by,
+            description=f"Case created from template: {template_name}"
         )
-        case.actions.append(creation_action)
+        case.actions.append(initial_action)
         
-        # Store case
-        self.cases[case_id] = case
-        self._save_data()
-        
-        self.logger.logger.info(f"Created case {case_number} ({case_id})")
-        
-        return case
-    
-    def _apply_template(self, case: ComplianceCase, template: CaseTemplate):
-        """Apply template to case"""
-        # Add default tasks
-        for task_data in template.default_tasks:
+        # Create default tasks
+        for task_template in template.get('default_tasks', []):
             task = CaseTask(
                 task_id=str(uuid.uuid4()),
-                title=task_data['title'],
-                description=task_data['description'],
-                priority=case.priority,
-                estimated_hours=task_data.get('estimated_hours')
+                title=task_template['title'],
+                description=task_template['description'],
+                assigned_to=assigned_to,
+                priority=case.priority
             )
             case.tasks.append(task)
         
-        # Set compliance requirements
-        case.compliance_requirements = template.compliance_requirements.copy()
+        self.cases[case_id] = case
         
-        # Set metadata
-        case.metadata['template_id'] = template.template_id
-        case.metadata['required_evidence'] = template.required_evidence
+        # Execute workflow if applicable
+        self._execute_workflow_for_case(case)
+        
+        logger.info(f"Created case {case_id} from template {template_name}")
+        return case
+    
+    def create_custom_case(self, case_data: Dict[str, Any]) -> Case:
+        """Create a custom case"""
+        case_id = str(uuid.uuid4())
+        
+        case = Case(
+            case_id=case_id,
+            title=case_data['title'],
+            description=case_data['description'],
+            category=CaseCategory(case_data['category']),
+            priority=CasePriority(case_data['priority']),
+            status=CaseStatus.OPEN,
+            entity_name=case_data['entity_name'],
+            entity_type=case_data['entity_type'],
+            assigned_to=case_data['assigned_to'],
+            created_by=case_data['created_by'],
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            due_date=case_data.get('due_date'),
+            tags=case_data.get('tags', []),
+            risk_score=case_data.get('risk_score', 0.0),
+            compliance_impact=case_data.get('compliance_impact', ''),
+            regulatory_requirements=case_data.get('regulatory_requirements', [])
+        )
+        
+        # Create initial action
+        initial_action = CaseAction(
+            action_id=str(uuid.uuid4()),
+            action_type=ActionType.CREATED,
+            timestamp=datetime.now(),
+            user_id=case_data['created_by'],
+            user_name=case_data['created_by'],
+            description="Custom case created"
+        )
+        case.actions.append(initial_action)
+        
+        self.cases[case_id] = case
+        self._execute_workflow_for_case(case)
+        
+        logger.info(f"Created custom case {case_id}")
+        return case
     
     def update_case_status(self, case_id: str, new_status: CaseStatus, 
-                          performed_by: str, comment: Optional[str] = None) -> bool:
+                          user_id: str, user_name: str, notes: str = "") -> bool:
         """Update case status"""
-        try:
-            case = self.cases.get(case_id)
-            if not case:
-                raise ValueError(f"Case {case_id} not found")
-            
-            # Validate status transition
-            if not self.workflow_engine.validate_status_transition(case.status, new_status):
-                raise ValueError(f"Invalid status transition from {case.status.value} to {new_status.value}")
-            
-            old_status = case.status
-            case.status = new_status
-            case.updated_at = datetime.now()
-            
-            # Handle status-specific logic
-            if new_status == CaseStatus.CLOSED:
-                case.closed_at = datetime.now()
-            elif new_status == CaseStatus.REOPENED:
-                case.status = CaseStatus.IN_PROGRESS  # Reopened cases go to in progress
-                case.closed_at = None
-            
-            # Add status change action
-            description = f"Status changed from {old_status.value} to {new_status.value}"
-            if comment:
-                description += f": {comment}"
-            
-            action = CaseAction(
-                action_id=str(uuid.uuid4()),
-                action_type=ActionType.STATUS_CHANGED,
-                performed_by=performed_by,
-                timestamp=datetime.now(),
-                description=description,
-                details={'old_status': old_status.value, 'new_status': new_status.value, 'comment': comment}
-            )
-            case.actions.append(action)
-            
-            self._save_data()
-            self.logger.logger.info(f"Updated case {case.case_number} status to {new_status.value}")
-            
-            return True
-            
-        except Exception as e:
-            self.logger.logger.error(f"Error updating case status: {e}")
+        if case_id not in self.cases:
             return False
+        
+        case = self.cases[case_id]
+        old_status = case.status
+        case.status = new_status
+        case.updated_at = datetime.now()
+        
+        # Set resolution/close timestamps
+        if new_status == CaseStatus.RESOLVED and not case.resolved_at:
+            case.resolved_at = datetime.now()
+        elif new_status == CaseStatus.CLOSED and not case.closed_at:
+            case.closed_at = datetime.now()
+        
+        # Create action record
+        action = CaseAction(
+            action_id=str(uuid.uuid4()),
+            action_type=ActionType.STATUS_CHANGED,
+            timestamp=datetime.now(),
+            user_id=user_id,
+            user_name=user_name,
+            description=f"Status changed from {old_status.value} to {new_status.value}",
+            details={"old_status": old_status.value, "new_status": new_status.value, "notes": notes}
+        )
+        case.actions.append(action)
+        
+        # Execute workflow steps
+        self._execute_workflow_for_case(case)
+        
+        logger.info(f"Updated case {case_id} status to {new_status.value}")
+        return True
     
-    def assign_case(self, case_id: str, assigned_to: str, assigned_by: str) -> bool:
-        """Assign case to user"""
-        try:
-            case = self.cases.get(case_id)
-            if not case:
-                raise ValueError(f"Case {case_id} not found")
-            
-            old_assignee = case.assigned_to
-            case.assigned_to = assigned_to
-            case.updated_at = datetime.now()
-            
-            # Update status if case is new
-            if case.status == CaseStatus.NEW:
-                case.status = CaseStatus.ASSIGNED
-            
-            # Add assignment action
-            description = f"Case assigned to {assigned_to}"
-            if old_assignee:
-                description = f"Case reassigned from {old_assignee} to {assigned_to}"
-            
-            action = CaseAction(
-                action_id=str(uuid.uuid4()),
-                action_type=ActionType.ASSIGNED,
-                performed_by=assigned_by,
-                timestamp=datetime.now(),
-                description=description,
-                details={'old_assignee': old_assignee, 'new_assignee': assigned_to}
-            )
-            case.actions.append(action)
-            
-            self._save_data()
-            self.logger.logger.info(f"Assigned case {case.case_number} to {assigned_to}")
-            
-            return True
-            
-        except Exception as e:
-            self.logger.logger.error(f"Error assigning case: {e}")
+    def assign_case(self, case_id: str, assigned_to: str, 
+                   assigned_by: str, notes: str = "") -> bool:
+        """Assign case to a user"""
+        if case_id not in self.cases:
             return False
+        
+        case = self.cases[case_id]
+        old_assignee = case.assigned_to
+        case.assigned_to = assigned_to
+        case.updated_at = datetime.now()
+        
+        # Create action record
+        action = CaseAction(
+            action_id=str(uuid.uuid4()),
+            action_type=ActionType.ASSIGNED,
+            timestamp=datetime.now(),
+            user_id=assigned_by,
+            user_name=assigned_by,
+            description=f"Case assigned from {old_assignee} to {assigned_to}",
+            details={"old_assignee": old_assignee, "new_assignee": assigned_to, "notes": notes}
+        )
+        case.actions.append(action)
+        
+        logger.info(f"Assigned case {case_id} to {assigned_to}")
+        return True
     
-    def add_comment(self, case_id: str, comment: str, author: str) -> bool:
+    def add_case_comment(self, case_id: str, user_id: str, user_name: str, 
+                        comment: str, attachments: List[str] = None) -> bool:
         """Add comment to case"""
-        try:
-            case = self.cases.get(case_id)
-            if not case:
-                raise ValueError(f"Case {case_id} not found")
-            
-            action = CaseAction(
-                action_id=str(uuid.uuid4()),
-                action_type=ActionType.COMMENT_ADDED,
-                performed_by=author,
-                timestamp=datetime.now(),
-                description=comment
-            )
-            case.actions.append(action)
-            case.updated_at = datetime.now()
-            
-            self._save_data()
-            self.logger.logger.info(f"Added comment to case {case.case_number}")
-            
-            return True
-            
-        except Exception as e:
-            self.logger.logger.error(f"Error adding comment: {e}")
+        if case_id not in self.cases:
             return False
+        
+        case = self.cases[case_id]
+        case.updated_at = datetime.now()
+        
+        action = CaseAction(
+            action_id=str(uuid.uuid4()),
+            action_type=ActionType.COMMENT_ADDED,
+            timestamp=datetime.now(),
+            user_id=user_id,
+            user_name=user_name,
+            description=comment,
+            attachments=attachments or []
+        )
+        case.actions.append(action)
+        
+        logger.info(f"Added comment to case {case_id}")
+        return True
     
     def add_evidence(self, case_id: str, evidence: CaseEvidence) -> bool:
         """Add evidence to case"""
-        try:
-            case = self.cases.get(case_id)
-            if not case:
-                raise ValueError(f"Case {case_id} not found")
-            
-            case.evidence.append(evidence)
-            case.updated_at = datetime.now()
-            
-            # Add evidence action
-            action = CaseAction(
-                action_id=str(uuid.uuid4()),
-                action_type=ActionType.EVIDENCE_ADDED,
-                performed_by=evidence.collected_by,
-                timestamp=datetime.now(),
-                description=f"Added evidence: {evidence.title}",
-                details={'evidence_id': evidence.evidence_id, 'evidence_type': evidence.evidence_type}
-            )
-            case.actions.append(action)
-            
-            self._save_data()
-            self.logger.logger.info(f"Added evidence to case {case.case_number}")
-            
-            return True
-            
-        except Exception as e:
-            self.logger.logger.error(f"Error adding evidence: {e}")
+        if case_id not in self.cases:
             return False
+        
+        case = self.cases[case_id]
+        case.evidence.append(evidence)
+        case.updated_at = datetime.now()
+        
+        action = CaseAction(
+            action_id=str(uuid.uuid4()),
+            action_type=ActionType.EVIDENCE_ADDED,
+            timestamp=datetime.now(),
+            user_id=evidence.uploaded_by,
+            user_name=evidence.uploaded_by,
+            description=f"Evidence added: {evidence.title}",
+            details={"evidence_id": evidence.evidence_id, "evidence_type": evidence.evidence_type}
+        )
+        case.actions.append(action)
+        
+        logger.info(f"Added evidence to case {case_id}")
+        return True
     
-    async def analyze_case(self, case_id: str) -> Optional[Dict[str, Any]]:
-        """Perform AI analysis on case"""
-        try:
-            case = self.cases.get(case_id)
-            if not case:
-                raise ValueError(f"Case {case_id} not found")
-            
-            analysis = await self.analytics_engine.analyze_case(case)
-            
-            # Store analysis in case
-            case.ai_analysis = analysis
-            case.updated_at = datetime.now()
-            
-            # Update risk rating based on analysis
-            risk_assessment = analysis.get('risk_assessment', {})
-            risk_level = risk_assessment.get('risk_level', 'medium')
-            case.risk_rating = RiskRating(risk_level)
-            
-            self._save_data()
-            self.logger.logger.info(f"Completed AI analysis for case {case.case_number}")
-            
-            return analysis
-            
-        except Exception as e:
-            self.logger.logger.error(f"Error analyzing case: {e}")
-            return None
+    def complete_task(self, case_id: str, task_id: str, 
+                     completed_by: str, notes: str = "") -> bool:
+        """Mark a task as completed"""
+        if case_id not in self.cases:
+            return False
+        
+        case = self.cases[case_id]
+        
+        for task in case.tasks:
+            if task.task_id == task_id:
+                task.completed = True
+                task.completed_at = datetime.now()
+                task.completed_by = completed_by
+                case.updated_at = datetime.now()
+                
+                action = CaseAction(
+                    action_id=str(uuid.uuid4()),
+                    action_type=ActionType.REVIEWED,
+                    timestamp=datetime.now(),
+                    user_id=completed_by,
+                    user_name=completed_by,
+                    description=f"Task completed: {task.title}",
+                    details={"task_id": task_id, "notes": notes}
+                )
+                case.actions.append(action)
+                
+                logger.info(f"Completed task {task_id} in case {case_id}")
+                return True
+        
+        return False
     
-    def get_case(self, case_id: str) -> Optional[ComplianceCase]:
+    def get_case(self, case_id: str) -> Optional[Case]:
         """Get case by ID"""
         return self.cases.get(case_id)
     
-    def get_case_by_number(self, case_number: str) -> Optional[ComplianceCase]:
-        """Get case by case number"""
-        for case in self.cases.values():
-            if case.case_number == case_number:
-                return case
-        return None
-    
-    def list_cases(self, filters: Optional[Dict[str, Any]] = None) -> List[ComplianceCase]:
-        """List cases with optional filters"""
+    def search_cases(self, filters: Dict[str, Any] = None, 
+                    limit: int = 100) -> List[Case]:
+        """Search cases with filters"""
         cases = list(self.cases.values())
         
-        if not filters:
-            return cases
+        if filters:
+            if 'status' in filters:
+                cases = [c for c in cases if c.status.value == filters['status']]
+            
+            if 'priority' in filters:
+                cases = [c for c in cases if c.priority.value == filters['priority']]
+            
+            if 'category' in filters:
+                cases = [c for c in cases if c.category.value == filters['category']]
+            
+            if 'assigned_to' in filters:
+                cases = [c for c in cases if c.assigned_to == filters['assigned_to']]
+            
+            if 'entity_name' in filters:
+                entity_filter = filters['entity_name'].lower()
+                cases = [c for c in cases if entity_filter in c.entity_name.lower()]
+            
+            if 'created_after' in filters:
+                after_date = filters['created_after']
+                cases = [c for c in cases if c.created_at >= after_date]
+            
+            if 'due_before' in filters:
+                before_date = filters['due_before']
+                cases = [c for c in cases if c.due_date and c.due_date <= before_date]
         
-        # Apply filters
-        if 'status' in filters:
-            cases = [c for c in cases if c.status == filters['status']]
+        # Sort by priority and creation date
+        priority_order = {'critical': 4, 'high': 3, 'medium': 2, 'low': 1}
+        cases.sort(key=lambda x: (priority_order.get(x.priority.value, 0), x.created_at), 
+                  reverse=True)
         
-        if 'case_type' in filters:
-            cases = [c for c in cases if c.case_type == filters['case_type']]
-        
-        if 'assigned_to' in filters:
-            cases = [c for c in cases if c.assigned_to == filters['assigned_to']]
-        
-        if 'priority' in filters:
-            cases = [c for c in cases if c.priority == filters['priority']]
-        
-        if 'created_by' in filters:
-            cases = [c for c in cases if c.created_by == filters['created_by']]
-        
-        # Sort by creation date (newest first)
-        cases.sort(key=lambda c: c.created_at, reverse=True)
-        
-        return cases
+        return cases[:limit]
     
     def get_case_statistics(self) -> Dict[str, Any]:
-        """Get case management statistics"""
-        stats = {
-            'total_cases': len(self.cases),
-            'cases_by_status': {},
-            'cases_by_type': {},
-            'cases_by_priority': {},
-            'average_resolution_time': 0.0,
-            'overdue_cases': 0,
-            'sla_compliance': 0.0
+        """Get comprehensive case statistics"""
+        total_cases = len(self.cases)
+        
+        # Status breakdown
+        status_counts = {}
+        for case in self.cases.values():
+            status = case.status.value
+            status_counts[status] = status_counts.get(status, 0) + 1
+        
+        # Priority breakdown
+        priority_counts = {}
+        for case in self.cases.values():
+            priority = case.priority.value
+            priority_counts[priority] = priority_counts.get(priority, 0) + 1
+        
+        # Category breakdown
+        category_counts = {}
+        for case in self.cases.values():
+            category = case.category.value
+            category_counts[category] = category_counts.get(category, 0) + 1
+        
+        # Overdue cases
+        now = datetime.now()
+        overdue_cases = [c for c in self.cases.values() 
+                        if c.due_date and c.due_date < now and c.status not in [CaseStatus.RESOLVED, CaseStatus.CLOSED]]
+        
+        # Average resolution time
+        resolved_cases = [c for c in self.cases.values() if c.resolved_at]
+        avg_resolution_time = None
+        if resolved_cases:
+            total_time = sum((c.resolved_at - c.created_at).total_seconds() for c in resolved_cases)
+            avg_resolution_time = total_time / len(resolved_cases) / 3600  # hours
+        
+        return {
+            'total_cases': total_cases,
+            'status_breakdown': status_counts,
+            'priority_breakdown': priority_counts,
+            'category_breakdown': category_counts,
+            'overdue_cases': len(overdue_cases),
+            'resolved_cases': len(resolved_cases),
+            'average_resolution_hours': avg_resolution_time,
+            'statistics_timestamp': datetime.now().isoformat()
+        }
+    
+    def _execute_workflow_for_case(self, case: Case):
+        """Execute applicable workflows for a case"""
+        try:
+            # Determine which workflow to use
+            workflow_id = "high_priority" if case.priority in [CasePriority.CRITICAL, CasePriority.HIGH] else "standard"
+            
+            if workflow_id in self.workflows:
+                workflow = self.workflows[workflow_id]
+                
+                for step in workflow.steps:
+                    if workflow.can_execute_step(step, case):
+                        self._execute_workflow_step(step, case)
+                        
+        except Exception as e:
+            logger.error(f"Error executing workflow for case {case.case_id}: {e}")
+    
+    def _execute_workflow_step(self, step: Dict[str, Any], case: Case):
+        """Execute a single workflow step"""
+        action = step['action']
+        
+        if action == "auto_assign":
+            # Auto-assignment logic would go here
+            logger.info(f"Auto-assignment triggered for case {case.case_id}")
+        
+        elif action == "send_alert":
+            # Alert sending logic would go here
+            logger.info(f"Alert sent for case {case.case_id}")
+        
+        elif action == "check_escalation":
+            # Escalation checking logic would go here
+            logger.info(f"Escalation check performed for case {case.case_id}")
+        
+        elif action == "schedule_review":
+            # Review scheduling logic would go here
+            logger.info(f"Review scheduled for case {case.case_id}")
+    
+    def export_case(self, case_id: str) -> Optional[Dict[str, Any]]:
+        """Export case data"""
+        if case_id not in self.cases:
+            return None
+        
+        case = self.cases[case_id]
+        
+        # Convert case to dictionary format
+        case_dict = {
+            'case_id': case.case_id,
+            'title': case.title,
+            'description': case.description,
+            'category': case.category.value,
+            'priority': case.priority.value,
+            'status': case.status.value,
+            'entity_name': case.entity_name,
+            'entity_type': case.entity_type,
+            'entity_id': case.entity_id,
+            'assigned_to': case.assigned_to,
+            'created_by': case.created_by,
+            'created_at': case.created_at.isoformat(),
+            'updated_at': case.updated_at.isoformat(),
+            'due_date': case.due_date.isoformat() if case.due_date else None,
+            'resolved_at': case.resolved_at.isoformat() if case.resolved_at else None,
+            'closed_at': case.closed_at.isoformat() if case.closed_at else None,
+            'risk_score': case.risk_score,
+            'compliance_impact': case.compliance_impact,
+            'regulatory_requirements': case.regulatory_requirements,
+            'tags': case.tags,
+            'actions': [
+                {
+                    'action_id': action.action_id,
+                    'action_type': action.action_type.value,
+                    'timestamp': action.timestamp.isoformat(),
+                    'user_id': action.user_id,
+                    'user_name': action.user_name,
+                    'description': action.description,
+                    'details': action.details,
+                    'attachments': action.attachments
+                }
+                for action in case.actions
+            ],
+            'evidence': [
+                {
+                    'evidence_id': evidence.evidence_id,
+                    'evidence_type': evidence.evidence_type,
+                    'title': evidence.title,
+                    'description': evidence.description,
+                    'file_path': evidence.file_path,
+                    'content': evidence.content,
+                    'metadata': evidence.metadata,
+                    'uploaded_by': evidence.uploaded_by,
+                    'uploaded_at': evidence.uploaded_at.isoformat()
+                }
+                for evidence in case.evidence
+            ],
+            'tasks': [
+                {
+                    'task_id': task.task_id,
+                    'title': task.title,
+                    'description': task.description,
+                    'assigned_to': task.assigned_to,
+                    'due_date': task.due_date.isoformat() if task.due_date else None,
+                    'completed': task.completed,
+                    'completed_at': task.completed_at.isoformat() if task.completed_at else None,
+                    'completed_by': task.completed_by,
+                    'priority': task.priority.value,
+                    'dependencies': task.dependencies
+                }
+                for task in case.tasks
+            ],
+            'metadata': case.metadata
         }
         
-        resolution_times = []
-        overdue_count = 0
-        sla_met = 0
-        total_closed = 0
-        
-        for case in self.cases.values():
-            # Count by status
-            status_key = case.status.value
-            stats['cases_by_status'][status_key] = stats['cases_by_status'].get(status_key, 0) + 1
-            
-            # Count by type
-            type_key = case.case_type.value
-            stats['cases_by_type'][type_key] = stats['cases_by_type'].get(type_key, 0) + 1
-            
-            # Count by priority
-            priority_key = case.priority.value
-            stats['cases_by_priority'][priority_key] = stats['cases_by_priority'].get(priority_key, 0) + 1
-            
-            # Calculate resolution time for closed cases
-            if case.status == CaseStatus.CLOSED and case.closed_at:
-                resolution_time = (case.closed_at - case.created_at).total_seconds() / 86400  # days
-                resolution_times.append(resolution_time)
-                total_closed += 1
-                
-                # Check SLA compliance
-                if case.due_date and case.closed_at <= case.due_date:
-                    sla_met += 1
-            
-            # Check overdue
-            if case.due_date and datetime.now() > case.due_date and case.status not in [CaseStatus.CLOSED, CaseStatus.ARCHIVED]:
-                overdue_count += 1
-        
-        # Calculate averages
-        if resolution_times:
-            stats['average_resolution_time'] = sum(resolution_times) / len(resolution_times)
-        
-        stats['overdue_cases'] = overdue_count
-        
-        if total_closed > 0:
-            stats['sla_compliance'] = (sla_met / total_closed) * 100
-        
-        return stats
-
-# Global case management system with default config
-case_management_system = CaseManagementSystem(config={})
-
-def get_case_management_system() -> CaseManagementSystem:
-    """Get the global case management system"""
-    return case_management_system
+        return case_dict

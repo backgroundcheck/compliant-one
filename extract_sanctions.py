@@ -16,9 +16,12 @@ sys.path.append(str(Path(__file__).parent))
 # Optional: PostgreSQL integration (requires psycopg2 installation)
 try:
     import psycopg2
+    from psycopg2 import sql
     POSTGRES_AVAILABLE = True
 except ImportError:
     POSTGRES_AVAILABLE = False
+    psycopg2 = None
+    sql = None
     print("PostgreSQL support not available. Install psycopg2 for database functionality.")
 
 # Use project logger

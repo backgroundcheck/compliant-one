@@ -1,0 +1,1086 @@
+
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Advanced Threat Intelligence Platforms: Cybersixgill vs Recorded Future</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'serif': ['Playfair Display', 'serif'],
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#1e293b',
+                        'secondary': '#475569',
+                        'accent': '#0f766e',
+                        'muted': '#64748b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        }
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .backdrop-blur-subtle {
+            backdrop-filter: blur(8px);
+        }
+        .citation-link {
+            color: #0f766e;
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px solid transparent;
+            transition: border-bottom-color 0.2s ease;
+        }
+        .citation-link:hover {
+            border-bottom-color: #0f766e;
+        }
+        .toc-link {
+            transition: all 0.2s ease;
+        }
+        .toc-link:hover {
+            background-color: #f1f5f9;
+            border-left-color: #0f766e;
+        }
+        .toc-link.active {
+            background-color: #f0fdfa;
+            border-left-color: #0f766e;
+            color: #0f766e;
+        }
+    </style>
+  <base target="_blank">
+</head>
+
+  <body class="bg-gray-50 font-sans text-gray-900 leading-relaxed overflow-x-hidden">
+    <!-- Fixed Table of Contents -->
+    <div id="toc-container" class="fixed left-0 top-0 h-full w-80 bg-white shadow-lg z-40 overflow-y-auto border-r border-gray-200 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-serif text-lg font-semibold text-primary">Table of Contents</h3>
+          <button id="close-toc" class="lg:hidden text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <nav class="space-y-1">
+          <a href="#executive-summary" class="toc-link block px-3 py-2 text-sm text-secondary border-l-2 border-transparent rounded">Executive Summary</a>
+          <a href="#introduction" class="toc-link block px-3 py-2 text-sm text-secondary border-l-2 border-transparent rounded">Introduction to ATI Platforms</a>
+          <a href="#cybersixgill" class="toc-link block px-3 py-2 text-sm text-secondary border-l-2 border-transparent rounded">Cybersixgill: Deep Web Intelligence</a>
+          <a href="#recorded-future" class="toc-link block px-3 py-2 text-sm text-secondary border-l-2 border-transparent rounded">Recorded Future: Enterprise Solution</a>
+          <a href="#comparison" class="toc-link block px-3 py-2 text-sm text-secondary border-l-2 border-transparent rounded">Head-to-Head Comparison</a>
+          <a href="#use-cases" class="toc-link block px-3 py-2 text-sm text-secondary border-l-2 border-transparent rounded">Use Cases &amp; Impact</a>
+          <a href="#future" class="toc-link block px-3 py-2 text-sm text-secondary border-l-2 border-transparent rounded">Future of ATI Platforms</a>
+          <a href="#conclusion" class="toc-link block px-3 py-2 text-sm text-secondary border-l-2 border-transparent rounded">Conclusion &amp; Recommendations</a>
+          <a href="#training" class="toc-link block px-3 py-2 text-sm text-secondary border-l-2 border-transparent rounded">Internal Training</a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Mobile TOC Toggle -->
+    <button id="toc-toggle" class="lg:hidden fixed top-4 left-4 z-50 bg-white shadow-lg rounded-full p-3 text-primary">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Main Content -->
+    <div class="lg:ml-80">
+      <!-- Hero Section -->
+      <section class="hero-gradient relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+          <img src="https://kimi-web-img.moonshot.cn/img/static.vecteezy.com/b2cd19b52642bde0873ea8b89f0e906341e50013.jpg" alt="Abstract cybersecurity network background" class="w-full h-full object-cover" size="wallpaper" aspect="wide" color="blue" query="cybersecurity network background" referrerpolicy="no-referrer" data-modified="1" data-score="0.00"/>
+        </div>
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <!-- Main Title -->
+            <div class="lg:col-span-7">
+              <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+                <em class="text-teal-300">Advanced Threat Intelligence</em>
+                <br/>
+                Platforms
+              </h1>
+              <p class="text-xl text-gray-200 mb-8 leading-relaxed">
+                A comprehensive analysis of Cybersixgill and Recorded Future in the evolving cybersecurity landscape of 2025
+              </p>
+              <div class="flex flex-wrap gap-4">
+                <div class="bg-white/10 backdrop-blur-subtle rounded-lg px-4 py-2">
+                  <span class="text-sm text-teal-300 font-medium">Market Growth: 15.59% CAGR</span>
+                </div>
+                <div class="bg-white/10 backdrop-blur-subtle rounded-lg px-4 py-2">
+                  <span class="text-sm text-teal-300 font-medium">$40.03B by 2032</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Stats Grid -->
+            <div class="lg:col-span-5">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white/5 backdrop-blur-subtle rounded-xl p-6 border border-white/10">
+                  <div class="text-3xl font-bold text-teal-300 mb-2">42%</div>
+                  <div class="text-sm text-gray-300">Reduction in threat detection time</div>
+                </div>
+                <div class="bg-white/5 backdrop-blur-subtle rounded-xl p-6 border border-white/10">
+                  <div class="text-3xl font-bold text-teal-300 mb-2">37%</div>
+                  <div class="text-sm text-gray-300">Improvement in incident mitigation</div>
+                </div>
+                <div class="bg-white/5 backdrop-blur-subtle rounded-xl p-6 border border-white/10">
+                  <div class="text-3xl font-bold text-teal-300 mb-2">1,265%</div>
+                  <div class="text-sm text-gray-300">Increase in AI phishing attacks</div>
+                </div>
+                <div class="bg-white/5 backdrop-blur-subtle rounded-xl p-6 border border-white/10">
+                  <div class="text-3xl font-bold text-teal-300 mb-2">371</div>
+                  <div class="text-sm text-gray-300">Average SaaS apps per enterprise</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Executive Summary -->
+      <section id="executive-summary" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="max-w-4xl">
+            <h2 class="font-serif text-4xl font-bold text-primary mb-8">Executive Summary</h2>
+            <div class="prose prose-lg max-w-none">
+              <p class="text-xl text-secondary mb-6 leading-relaxed">
+                The threat intelligence platform market is experiencing significant growth, driven by increasing sophistication and frequency of cyber threats. Valued at <strong>USD 12.57 billion in 2024</strong>, the market is projected to reach <strong>USD 40.03 billion by 2032</strong>, expanding at a <strong>Compound Annual Growth Rate (CAGR) of 15.59%</strong>
+                <a href="https://www.snsinsider.com/reports/threat-intelligence-platform-market-7603" class="citation-link" target="_blank">[6]</a>.
+              </p>
+              <p class="text-lg text-secondary mb-6">
+                This growth underscores the critical need for organizations to adopt advanced threat intelligence (ATI) solutions to proactively identify, analyze, and respond to potential threats. Organizations leveraging ATI platforms have reportedly <strong>reduced threat detection time by 42% and improved incident mitigation speed by 37% through automation</strong>
+                <a href="https://www.snsinsider.com/reports/threat-intelligence-platform-market-7603" class="citation-link" target="_blank">[6]</a>.
+              </p>
+              <div class="bg-teal-50 border-l-4 border-teal-400 p-6 my-8">
+                <p class="text-lg font-medium text-teal-900 mb-2">Key Finding</p>
+                <p class="text-teal-800">
+                  <strong>Cybersixgill excels in deep and dark web intelligence</strong>, leveraging specialized AI (Cybersixgill IQ) to provide actionable insights from hidden sources. <strong>Recorded Future offers a broader, enterprise-focused solution</strong>, utilizing its powerful Intelligence Graph and extensive AI capabilities.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Introduction -->
+      <section id="introduction" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="font-serif text-4xl font-bold text-primary mb-12">Introduction to Advanced Threat Intelligence Platforms</h2>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+              <div class="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-6">
+                <i class="fas fa-shield-alt text-teal-600 text-xl"></i>
+              </div>
+              <h3 class="font-serif text-xl font-semibold text-primary mb-4">What is ATI?</h3>
+              <p class="text-secondary">Advanced Threat Intelligence goes beyond simple Indicators of Compromise to provide context-rich insights into adversary tactics, techniques, and procedures (TTPs).</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+              <div class="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-6">
+                <i class="fas fa-chart-line text-teal-600 text-xl"></i>
+              </div>
+              <h3 class="font-serif text-xl font-semibold text-primary mb-4">Growing Need</h3>
+              <p class="text-secondary">The global threat intelligence market, valued at $13.56 billion in 2025, is projected to grow to $26.19 billion by 2029 <a href="https://www.thebusinessresearchcompany.com/market-insights/threat-intelligence-market-insights-2025" class="citation-link" target="_blank">[7]</a>.</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+              <div class="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-6">
+                <i class="fas fa-cogs text-teal-600 text-xl"></i>
+              </div>
+              <h3 class="font-serif text-xl font-semibold text-primary mb-4">Core Functionalities</h3>
+              <p class="text-secondary">Automated data collection, AI-powered analysis, threat hunting capabilities, and seamless integration with existing security infrastructure.</p>
+            </div>
+          </div>
+
+          <!-- Threat Landscape Statistics -->
+          <div class="bg-white rounded-xl p-8 shadow-sm mb-12">
+            <h3 class="font-serif text-2xl font-semibold text-primary mb-8">The Evolving Threat Landscape</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="text-center">
+                <div class="text-3xl font-bold text-red-600 mb-2">77%</div>
+                <div class="text-sm text-secondary">of SaaS attacks originate from stolen credentials</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-orange-600 mb-2">25%</div>
+                <div class="text-sm text-secondary">increase in credentials stolen per device since 2021</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-purple-600 mb-2">1,265%</div>
+                <div class="text-sm text-secondary">increase in AI-enabled phishing attacks (2022-2023)</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-blue-600 mb-2">371</div>
+                <div class="text-sm text-secondary">average SaaS apps per enterprise</div>
+              </div>
+            </div>
+            <p class="text-sm text-muted mt-6 text-center">
+              Source: <a href="https://www.recordedfuture.com/blog/6-threat-intelligence-outlooks-strategies-2025" class="citation-link" target="_blank">Recorded Future Threat Intelligence Outlook 2025 [66]</a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cybersixgill Section -->
+      <section id="cybersixgill" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center mb-12">
+            <img src="https://kimi-web-img.moonshot.cn/img/easy-peasy.ai/ef1a7e5b686340a39aeb492d7e9d15d71cddd861.png" alt="Abstract dark web cybersecurity visualization with glowing data streams" class="w-24 h-24 rounded-xl object-cover mr-6" size="small" aspect="square" query="dark web cybersecurity abstract" referrerpolicy="no-referrer" data-modified="1" data-score="0.00"/>
+            <div>
+              <h2 class="font-serif text-4xl font-bold text-primary">Cybersixgill</h2>
+              <p class="text-xl text-secondary mt-2">Deep and Dark Web Intelligence Powerhouse</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+            <div>
+              <h3 class="font-serif text-2xl font-semibold text-primary mb-6">Company Overview</h3>
+              <p class="text-secondary mb-4">
+                Founded in 2014 and headquartered in Israel, Cybersixgill has established itself as a significant player in cyber threat intelligence, particularly renowned for its expertise in monitoring and analyzing threats originating from the <strong>deep and dark web</strong>
+                <a href="https://slashdot.org/software/comparison/Cybersixgill-vs-Recorded-Future/" class="citation-link" target="_blank">[23]</a>.
+              </p>
+              <p class="text-secondary mb-6">
+                In November 2024, Cybersixgill was acquired by <strong>Bitsight</strong>, a leader in cyber risk management, for <strong>$115 million</strong>
+                <a href="https://www.bitsight.com/press-releases/bitsight-acquire-cyber-threat-intelligence-leader-cybersixgill-help-enterprises" class="citation-link" target="_blank">[11]</a>.
+              </p>
+
+              <div class="bg-teal-50 rounded-xl p-6">
+                <h4 class="font-semibold text-primary mb-4">Core Capabilities</h4>
+                <ul class="space-y-2 text-secondary">
+                  <li class="flex items-start">
+                    <i class="fas fa-check-circle text-teal-600 mt-1 mr-3"></i>
+                    <span>Automated collection from underground sources</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check-circle text-teal-600 mt-1 mr-3"></i>
+                    <span>Threat actor profiling (95+ million profiles)</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check-circle text-teal-600 mt-1 mr-3"></i>
+                    <span>Multilingual NLP and OCR processing</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check-circle text-teal-600 mt-1 mr-3"></i>
+                    <span>Historical data back to the 1990s</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="font-serif text-2xl font-semibold text-primary mb-6">Cybersixgill IQ: AI Innovation</h3>
+              <p class="text-secondary mb-4">
+                Launched in June 2023, <strong>Cybersixgill IQ</strong> represents a breakthrough in generative AI for threat intelligence. Unlike simple integrations with general-purpose AI models, Cybersixgill IQ utilizes AI across all features, intelligently responding to customer inquiries with tailored insights <a href="https://siliconangle.com/2023/06/14/cybersixgill-launches-ai-powered-cyber-threat-intelligence-solution/" class="citation-link" target="_blank">[12]</a>.
+              </p>
+
+              <div class="bg-gray-50 rounded-xl p-6">
+                <h4 class="font-semibold text-primary mb-4">AI-Powered Features</h4>
+                <div class="space-y-4">
+                  <div class="flex items-center">
+                    <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center mr-4">
+                      <i class="fas fa-robot text-teal-600 text-sm"></i>
+                    </div>
+                    <div>
+                      <div class="font-medium text-primary">24/7 AI Assistant</div>
+                      <div class="text-sm text-secondary">Personalized threat intelligence support</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center mr-4">
+                      <i class="fas fa-file-alt text-teal-600 text-sm"></i>
+                    </div>
+                    <div>
+                      <div class="font-medium text-primary">Automated Reporting</div>
+                      <div class="text-sm text-secondary">Contextual summaries and finished reports</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center mr-4">
+                      <i class="fas fa-language text-teal-600 text-sm"></i>
+                    </div>
+                    <div>
+                      <div class="font-medium text-primary">Multilingual Analysis</div>
+                      <div class="text-sm text-secondary">Processing data in all languages and formats</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Sources -->
+          <div class="bg-gray-50 rounded-xl p-8">
+            <h3 class="font-serif text-2xl font-semibold text-primary mb-6">Comprehensive Data Sources</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="bg-white rounded-lg p-6 text-center">
+                <i class="fas fa-user-secret text-3xl text-red-600 mb-4"></i>
+                <h4 class="font-semibold text-primary mb-2">Dark Web Forums</h4>
+                <p class="text-sm text-secondary">Limited-access underground communities</p>
+              </div>
+              <div class="bg-white rounded-lg p-6 text-center">
+                <i class="fas fa-shopping-cart text-3xl text-orange-600 mb-4"></i>
+                <h4 class="font-semibold text-primary mb-2">Illicit Markets</h4>
+                <p class="text-sm text-secondary">Marketplaces for stolen data and tools</p>
+              </div>
+              <div class="bg-white rounded-lg p-6 text-center">
+                <i class="fas fa-code text-3xl text-blue-600 mb-4"></i>
+                <h4 class="font-semibold text-primary mb-2">Code Repositories</h4>
+                <p class="text-sm text-secondary">Malware source code and exploit kits</p>
+              </div>
+              <div class="bg-white rounded-lg p-6 text-center">
+                <i class="fas fa-paste text-3xl text-purple-600 mb-4"></i>
+                <h4 class="font-semibold text-primary mb-2">Paste Sites</h4>
+                <p class="text-sm text-secondary">Temporary data sharing platforms</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recorded Future Section -->
+      <section id="recorded-future" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center mb-12">
+            <img src="https://kimi-web-img.moonshot.cn/img/www.enea.com/9e1015ff58a8b2267c03a49162cb93597d5b1027.jpg" alt="Abstract visualization of a global threat intelligence network" class="w-24 h-24 rounded-xl object-cover mr-6" size="small" aspect="square" query="global threat intelligence network visualization" referrerpolicy="no-referrer" data-modified="1" data-score="0.00"/>
+            <div>
+              <h2 class="font-serif text-4xl font-bold text-primary">Recorded Future</h2>
+              <p class="text-xl text-secondary mt-2">Comprehensive Threat Intelligence for the Enterprise</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+            <div>
+              <h3 class="font-serif text-2xl font-semibold text-primary mb-6">Enterprise Leadership</h3>
+              <p class="text-secondary mb-4">
+                Founded in 2009 and headquartered in Somerville, Massachusetts, Recorded Future positions itself as the <strong>world&#39;s largest threat intelligence provider</strong>
+                <a href="https://www.recordedfuture.com/" class="citation-link" target="_blank">[48]</a>. The company serves over <strong>1,000 businesses and government entities worldwide</strong>.
+              </p>
+              <p class="text-secondary mb-6">
+                In 2024, Recorded Future was acquired by <strong>Mastercard for $2.65 billion</strong>
+                <a href="https://www.bitsight.com/compare/bitsight-vs-recorded-future" class="citation-link" target="_blank">[45]</a>, highlighting the strategic value and market recognition of its offerings.
+              </p>
+
+              <div class="bg-blue-50 rounded-xl p-6">
+                <h4 class="font-semibold text-primary mb-4">Intelligence Modules</h4>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                  <div class="flex items-center">
+                    <i class="fas fa-bullseye text-blue-600 mr-2"></i>
+                    <span>Brand Intelligence</span>
+                  </div>
+                  <div class="flex items-center">
+                    <i class="fas fa-shield-alt text-blue-600 mr-2"></i>
+                    <span>SecOps Intelligence</span>
+                  </div>
+                  <div class="flex items-center">
+                    <i class="fas fa-id-card text-blue-600 mr-2"></i>
+                    <span>Identity Intelligence</span>
+                  </div>
+                  <div class="flex items-center">
+                    <i class="fas fa-users text-blue-600 mr-2"></i>
+                    <span>Third-Party Intelligence</span>
+                  </div>
+                  <div class="flex items-center">
+                    <i class="fas fa-bug text-blue-600 mr-2"></i>
+                    <span>Vulnerability Intelligence</span>
+                  </div>
+                  <div class="flex items-center">
+                    <i class="fas fa-globe text-blue-600 mr-2"></i>
+                    <span>Geopolitical Intelligence</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="font-serif text-2xl font-semibold text-primary mb-6">Intelligence Graph &amp; AI</h3>
+              <p class="text-secondary mb-4">
+                The foundation of Recorded Future&#39;s platform is the <strong>Intelligence Graph®</strong>, which analyzes and detects emerging threats by leveraging data from over <strong>1 million global sources</strong>
+                <a href="https://www.recordedfuture.com/platform/intelligence-graph" class="citation-link" target="_blank">[177]</a>.
+              </p>
+
+              <div class="space-y-4 mb-6">
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
+                  <h4 class="font-semibold text-primary mb-2">AI Insights</h4>
+                  <p class="text-sm text-secondary">Automated analysis and contextual understanding of threats</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
+                  <h4 class="font-semibold text-primary mb-2">AI Reporting</h4>
+                  <p class="text-sm text-secondary">AI-generated comprehensive intelligence reports</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
+                  <h4 class="font-semibold text-primary mb-2">AI Conversations</h4>
+                  <p class="text-sm text-secondary">Natural language query interface for intelligence data</p>
+                </div>
+              </div>
+
+              <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6">
+                <h4 class="font-semibold mb-2">Scale of Operations</h4>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div class="text-2xl font-bold">13B+</div>
+                    <div class="text-sm">Entities tracked</div>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-bold">1M+</div>
+                    <div class="text-sm">Data sources</div>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-bold">1000+</div>
+                    <div class="text-sm">Enterprises served</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Integration Ecosystem -->
+          <div class="bg-white rounded-xl p-8">
+            <h3 class="font-serif text-2xl font-semibold text-primary mb-6">Extensive Integration Ecosystem</h3>
+            <p class="text-secondary mb-6">
+              Recorded Future boasts integration with <strong>100% of Gartner® Magic Quadrant™ SIEM Leaders</strong>, covering over <strong>70 security use cases</strong> and supporting more than <strong>30 product categories</strong>
+              <a href="https://www.recordedfuture.com/platform/integrations" class="citation-link" target="_blank">[15]</a>.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="text-center">
+                <i class="fas fa-chart-bar text-3xl text-blue-600 mb-3"></i>
+                <h4 class="font-semibold text-primary mb-2">SIEM Integration</h4>
+                <p class="text-sm text-secondary">Splunk, IBM QRadar, Microsoft Sentinel</p>
+              </div>
+              <div class="text-center">
+                <i class="fas fa-cog text-3xl text-green-600 mb-3"></i>
+                <h4 class="font-semibold text-primary mb-2">SOAR Platforms</h4>
+                <p class="text-sm text-secondary">Palo Alto XSOAR, IBM Resilient</p>
+              </div>
+              <div class="text-center">
+                <i class="fas fa-desktop text-3xl text-purple-600 mb-3"></i>
+                <h4 class="font-semibold text-primary mb-2">EDR Solutions</h4>
+                <p class="text-sm text-secondary">Carbon Black, CrowdStrike</p>
+              </div>
+              <div class="text-center">
+                <i class="fas fa-search text-3xl text-orange-600 mb-3"></i>
+                <h4 class="font-semibold text-primary mb-2">Threat Analysis</h4>
+                <p class="text-sm text-secondary">Maltego, King &amp; Union Avalon</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comparison Section -->
+      <section id="comparison" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="font-serif text-4xl font-bold text-primary mb-12 text-center">Head-to-Head Comparison</h2>
+
+          <!-- Feature Comparison Matrix -->
+          <div class="bg-gray-50 rounded-xl p-8 mb-12">
+            <h3 class="font-serif text-2xl font-semibold text-primary mb-8">Feature Comparison Matrix</h3>
+
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse">
+                <thead>
+                  <tr class="border-b-2 border-gray-300">
+                    <th class="text-left py-4 px-6 font-semibold text-primary">Feature Category</th>
+                    <th class="text-left py-4 px-6 font-semibold text-primary">Cybersixgill</th>
+                    <th class="text-left py-4 px-6 font-semibold text-primary">Recorded Future</th>
+                    <th class="text-left py-4 px-6 font-semibold text-primary">Analysis</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <tr class="hover:bg-gray-100">
+                    <td class="py-4 px-6 font-medium text-primary">Core Focus</td>
+                    <td class="py-4 px-6 text-secondary">Deep and dark web intelligence, threat actor analysis <a href="https://slashdot.org/software/comparison/Cybersixgill-vs-Recorded-Future/" class="citation-link" target="_blank">[44]</a>
+                    </td>
+                    <td class="py-4 px-6 text-secondary">Comprehensive threat data analysis, real-time research <a href="https://slashdot.org/software/comparison/Cybersixgill-vs-Recorded-Future/" class="citation-link" target="_blank">[44]</a>
+                    </td>
+                    <td class="py-4 px-6 text-secondary">Cybersixgill excels in deep web monitoring; Recorded Future offers broader scope</td>
+                  </tr>
+                  <tr class="hover:bg-gray-100">
+                    <td class="py-4 px-6 font-medium text-primary">AI Capabilities</td>
+                    <td class="py-4 px-6 text-secondary">Cybersixgill IQ (Generative AI) <a href="https://cybersixgill.com/products/iq" class="citation-link" target="_blank">[10]</a>
+                    </td>
+                    <td class="py-4 px-6 text-secondary">Intelligence Graph®, AI Insights, AI Conversations <a href="https://www.recordedfuture.com/platform/intelligence-graph" class="citation-link" target="_blank">[15]</a>
+                    </td>
+                    <td class="py-4 px-6 text-secondary">Both leverage AI significantly with different focal points</td>
+                  </tr>
+                  <tr class="hover:bg-gray-100">
+                    <td class="py-4 px-6 font-medium text-primary">Data Sources</td>
+                    <td class="py-4 px-6 text-secondary">Deep/dark web, forums, markets, historical data <a href="https://www.optimatech.com.hk/en/cybersixgill-cyber-threat-intelligence/" class="citation-link" target="_blank">[10]</a>
+                    </td>
+                    <td class="py-4 px-6 text-secondary">Open web, dark web, technical sources (1M+) <a href="https://www.recordedfuture.com/platform/intelligence-graph" class="citation-link" target="_blank">[15]</a>
+                    </td>
+                    <td class="py-4 px-6 text-secondary">Depth vs. breadth approach to data collection</td>
+                  </tr>
+                  <tr class="hover:bg-gray-100">
+                    <td class="py-4 px-6 font-medium text-primary">Integration</td>
+                    <td class="py-4 px-6 text-secondary">API, feeds, 30+ partners <a href="https://www.optimatech.com.hk/en/cybersixgill-cyber-threat-intelligence/" class="citation-link" target="_blank">[10]</a>
+                    </td>
+                    <td class="py-4 px-6 text-secondary">100+ integrations, 100% Gartner SIEM leaders <a href="https://www.recordedfuture.com/platform/integrations" class="citation-link" target="_blank">[15]</a>
+                    </td>
+                    <td class="py-4 px-6 text-secondary">Recorded Future has more extensive integration ecosystem</td>
+                  </tr>
+                  <tr class="hover:bg-gray-100">
+                    <td class="py-4 px-6 font-medium text-primary">Ease of Use</td>
+                    <td class="py-4 px-6 text-secondary">Smooth deployment, responsive support <a href="https://www.peerspot.com/products/comparisons/cybersixgill_vs_recorded-future" class="citation-link" target="_blank">[24]</a>
+                    </td>
+                    <td class="py-4 px-6 text-secondary">Flexible integration, robust support <a href="https://www.peerspot.com/products/comparisons/cybersixgill_vs_recorded-future" class="citation-link" target="_blank">[24]</a>
+                    </td>
+                    <td class="py-4 px-6 text-secondary">Cybersixgill simpler; Recorded Future more comprehensive</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Strengths and Weaknesses -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-teal-50 rounded-xl p-8">
+              <h3 class="font-serif text-2xl font-semibold text-primary mb-6">Cybersixgill: Strengths &amp; Weaknesses</h3>
+
+              <div class="mb-6">
+                <h4 class="font-semibold text-green-700 mb-4 flex items-center">
+                  <i class="fas fa-check-circle mr-2"></i>Strengths
+                </h4>
+                <ul class="space-y-2 text-secondary">
+                  <li>• Superior dark web monitoring capabilities</li>
+                  <li>• Advanced AI for dark web data analysis</li>
+                  <li>• Proactive threat management with targeted alerts</li>
+                  <li>• Smooth deployment and responsive support</li>
+                  <li>• Cost-effective for specialized needs</li>
+                  <li>• 100% user recommendation rate <a href="https://www.peerspot.com/products/comparisons/cybersixgill_vs_recorded-future" class="citation-link" target="_blank">[172]</a>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-red-700 mb-4 flex items-center">
+                  <i class="fas fa-exclamation-triangle mr-2"></i>Weaknesses
+                </h4>
+                <ul class="space-y-2 text-secondary">
+                  <li>• Limited open-source intelligence coverage</li>
+                  <li>• Room for improvement in multilingual support</li>
+                  <li>• Integration capabilities could be enhanced</li>
+                  <li>• Niche focus may not suit all organizations</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="bg-blue-50 rounded-xl p-8">
+              <h3 class="font-serif text-2xl font-semibold text-primary mb-6">Recorded Future: Strengths &amp; Weaknesses</h3>
+
+              <div class="mb-6">
+                <h4 class="font-semibold text-green-700 mb-4 flex items-center">
+                  <i class="fas fa-check-circle mr-2"></i>Strengths
+                </h4>
+                <ul class="space-y-2 text-secondary">
+                  <li>• Comprehensive threat data analysis</li>
+                  <li>• Real-time threat research capabilities</li>
+                  <li>• Extensive integration ecosystem</li>
+                  <li>• Customizable dashboards and UI</li>
+                  <li>• Strong market position and ROI</li>
+                  <li>• 16.3% market mindshare <a href="https://www.peerspot.com/products/comparisons/cybersixgill_vs_recorded-future" class="citation-link" target="_blank">[172]</a>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-red-700 mb-4 flex items-center">
+                  <i class="fas fa-exclamation-triangle mr-2"></i>Weaknesses
+                </h4>
+                <ul class="space-y-2 text-secondary">
+                  <li>• Higher initial cost investment</li>
+                  <li>• Steeper learning curve for advanced features</li>
+                  <li>• Could improve bidirectional tools</li>
+                  <li>• Some module limitations reported</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Use Cases Section -->
+      <section id="use-cases" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="font-serif text-4xl font-bold text-primary mb-12 text-center">Use Cases and Impact on Cybersecurity Operations</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+              <div class="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-6">
+                <i class="fas fa-search text-teal-600 text-xl"></i>
+              </div>
+              <h3 class="font-serif text-xl font-semibold text-primary mb-4">Proactive Threat Hunting</h3>
+              <p class="text-secondary mb-4">
+                ATI platforms empower security teams to move beyond reactive measures and engage in proactive threat hunting using intelligence on emerging threats and attacker TTPs.
+              </p>
+              <div class="text-sm text-muted">
+                <strong>Impact:</strong> Reduced detection time by 42%
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+              <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
+                <i class="fas fa-exclamation-triangle text-blue-600 text-xl"></i>
+              </div>
+              <h3 class="font-serif text-xl font-semibold text-primary mb-4">Incident Response</h3>
+              <p class="text-secondary mb-4">
+                During security incidents, timely intelligence provides context around IoCs, helping analysts understand threat nature, attacker motivations, and likely next steps.
+              </p>
+              <div class="text-sm text-muted">
+                <strong>Impact:</strong> 37% faster incident mitigation
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+              <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-6">
+                <i class="fas fa-bug text-purple-600 text-xl"></i>
+              </div>
+              <h3 class="font-serif text-xl font-semibold text-primary mb-4">Vulnerability Management</h3>
+              <p class="text-secondary mb-4">
+                ATI platforms provide context on which vulnerabilities are actively exploited, allowing teams to prioritize patching efforts effectively.
+              </p>
+              <div class="text-sm text-muted">
+                <strong>Benefit:</strong> Focus on high-risk vulnerabilities
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+              <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+                <i class="fas fa-link text-green-600 text-xl"></i>
+              </div>
+              <h3 class="font-serif text-xl font-semibold text-primary mb-4">Supply Chain Risk</h3>
+              <p class="text-secondary mb-4">
+                Monitor and assess security posture of third-party vendors, including data breaches and vulnerabilities affecting partner infrastructure.
+              </p>
+              <div class="text-sm text-muted">
+                <strong>Benefit:</strong> Continuous third-party risk visibility
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+              <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-6">
+                <i class="fas fa-shield-alt text-orange-600 text-xl"></i>
+              </div>
+              <h3 class="font-serif text-xl font-semibold text-primary mb-4">Brand Protection</h3>
+              <p class="text-secondary mb-4">
+                Monitor for brand impersonation, typosquatting domains, phishing campaigns, and sale of counterfeit goods or stolen customer data.
+              </p>
+              <div class="text-sm text-muted">
+                <strong>Benefit:</strong> Early threat detection and prevention
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+              <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-6">
+                <i class="fas fa-chart-line text-red-600 text-xl"></i>
+              </div>
+              <h3 class="font-serif text-xl font-semibold text-primary mb-4">Strategic Intelligence</h3>
+              <p class="text-secondary mb-4">
+                Provide intelligence tailored to different stakeholders, from technical teams needing IoCs to executives requiring strategic insights.
+              </p>
+              <div class="text-sm text-muted">
+                <strong>Benefit:</strong> Informed business decisions
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Future Trends Section -->
+      <section id="future" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="font-serif text-4xl font-bold text-primary mb-12 text-center">The Future of Advanced Threat Intelligence Platforms</h2>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+            <div>
+              <h3 class="font-serif text-2xl font-semibold text-primary mb-6">AI and Machine Learning Advancements</h3>
+              <p class="text-secondary mb-6">
+                Artificial Intelligence and Machine Learning will continue to be central to ATI platform evolution. Expect more sophisticated AI algorithms for predictive analytics, enabling platforms to forecast potential attacks and identify emerging threats with greater accuracy.
+              </p>
+
+              <div class="space-y-4">
+                <div class="flex items-start">
+                  <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <i class="fas fa-brain text-teal-600 text-sm"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-primary mb-1">Predictive Analytics</h4>
+                    <p class="text-sm text-secondary">Forecast potential attacks before they occur</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <i class="fas fa-robot text-purple-600 text-sm"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-primary mb-1">Generative AI Integration</h4>
+                    <p class="text-sm text-secondary">Natural language reports and automated responses</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <i class="fas fa-network-wired text-blue-600 text-sm"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-primary mb-1">Contextual Understanding</h4>
+                    <p class="text-sm text-secondary">Better comprehension of threat actor intent</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <img src="https://kimi-web-img.moonshot.cn/img/360advanced.com/e2eb0858622b656c6073f1d76d2f797b913ec672.jpg" alt="Artificial intelligence in cybersecurity" class="w-full h-64 object-cover rounded-xl mb-6" size="medium" aspect="wide" query="AI cybersecurity" referrerpolicy="no-referrer" data-modified="1" data-score="0.00"/>
+
+              <h3 class="font-serif text-2xl font-semibold text-primary mb-6">Expanded Data Sources</h3>
+              <p class="text-secondary mb-4">
+                The breadth and depth of data sources will continue to expand, incorporating non-traditional data sources and employing privacy-preserving techniques for secure data sharing.
+              </p>
+
+              <div class="bg-gray-50 rounded-lg p-6">
+                <h4 class="font-semibold text-primary mb-3">Emerging Data Sources</h4>
+                <ul class="text-sm text-secondary space-y-1">
+                  <li>• IoT device telemetry</li>
+                  <li>• Operational technology network data</li>
+                  <li>• Geopolitical indicators</li>
+                  <li>• Decentralized threat intelligence sharing</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Future Capabilities -->
+          <div class="bg-gradient-to-r from-teal-500 to-blue-600 text-white rounded-xl p-8">
+            <h3 class="font-serif text-2xl font-semibold mb-6">Enhanced Automation and Orchestration</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="text-center">
+                <i class="fas fa-bolt text-4xl mb-4"></i>
+                <h4 class="font-semibold mb-2">Automated Response</h4>
+                <p class="text-sm opacity-90">Trigger response actions within seconds</p>
+              </div>
+              <div class="text-center">
+                <i class="fas fa-cogs text-4xl mb-4"></i>
+                <h4 class="font-semibold mb-2">Intelligent Automation</h4>
+                <p class="text-sm opacity-90">Automate intelligence lifecycle processes</p>
+              </div>
+              <div class="text-center">
+                <i class="fas fa-chart-bar text-4xl mb-4"></i>
+                <h4 class="font-semibold mb-2">Business Intelligence</h4>
+                <p class="text-sm opacity-90">Strategic insights for executive decisions</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Conclusion Section -->
+      <section id="conclusion" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="font-serif text-4xl font-bold text-primary mb-12 text-center">Conclusion and Recommendations</h2>
+
+          <div class="max-w-4xl mx-auto mb-12">
+            <div class="bg-white rounded-xl p-8 shadow-sm">
+              <h3 class="font-serif text-2xl font-semibold text-primary mb-6">Choosing the Right ATI Platform</h3>
+              <p class="text-secondary mb-6">
+                Selecting between Cybersixgill and Recorded Future depends on your organization&#39;s specific intelligence requirements, integration needs, and strategic priorities.
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-teal-50 rounded-lg p-6">
+                  <h4 class="font-semibold text-primary mb-4 flex items-center">
+                    <i class="fas fa-user-secret text-teal-600 mr-3"></i>
+                    Choose Cybersixgill if:
+                  </h4>
+                  <ul class="space-y-2 text-secondary text-sm">
+                    <li>• Deep and dark web intelligence is your primary concern</li>
+                    <li>• You need specialized threat actor insights</li>
+                    <li>• Cost-effectiveness for niche capabilities is important</li>
+                    <li>• Quick deployment and ease of use are priorities</li>
+                    <li>• Early warning of underground threats is critical</li>
+                  </ul>
+                </div>
+
+                <div class="bg-blue-50 rounded-lg p-6">
+                  <h4 class="font-semibold text-primary mb-4 flex items-center">
+                    <i class="fas fa-globe text-blue-600 mr-3"></i>
+                    Choose Recorded Future if:
+                  </h4>
+                  <ul class="space-y-2 text-secondary text-sm">
+                    <li>• You require comprehensive, broad-spectrum intelligence</li>
+                    <li>• Extensive integration capabilities are needed</li>
+                    <li>• Enterprise-scale deployment is necessary</li>
+                    <li>• Multiple intelligence modules are beneficial</li>
+                    <li>• You can invest in learning complex capabilities</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key Considerations -->
+          <div class="bg-white rounded-xl p-8 shadow-sm">
+            <h3 class="font-serif text-2xl font-semibold text-primary mb-8">Key Selection Considerations</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-bullseye text-teal-600 text-xl"></i>
+                </div>
+                <h4 class="font-semibold text-primary mb-2">Intelligence Requirements</h4>
+                <p class="text-sm text-secondary">What threats are most relevant to your organization?</p>
+              </div>
+
+              <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-plug text-blue-600 text-xl"></i>
+                </div>
+                <h4 class="font-semibold text-primary mb-2">Integration Needs</h4>
+                <p class="text-sm text-secondary">How well does it work with your existing security stack?</p>
+              </div>
+
+              <div class="text-center">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-user-friends text-purple-600 text-xl"></i>
+                </div>
+                <h4 class="font-semibold text-primary mb-2">Ease of Use</h4>
+                <p class="text-sm text-secondary">What learning curve can your team manage?</p>
+              </div>
+
+              <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                </div>
+                <h4 class="font-semibold text-primary mb-2">Cost &amp; ROI</h4>
+                <p class="text-sm text-secondary">What&#39;s the total cost of ownership and expected return?</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Final Recommendation -->
+          <div class="mt-12 bg-gradient-to-r from-primary to-secondary text-white rounded-xl p-8">
+            <h3 class="font-serif text-2xl font-semibold mb-4">The Imperative of Continuous Threat Intelligence</h3>
+            <p class="text-lg mb-4">
+              Regardless of the platform chosen, the imperative for organizations is to adopt a strategy of continuous threat intelligence.
+            </p>
+            <p class="opacity-90">
+              The cyber threat landscape evolves daily with new vulnerabilities, attack vectors, and adversary TTPs. Investing in an ATI platform and the processes to leverage it effectively is an investment in the ongoing security and stability of your organization.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Training Section -->
+      <section id="training" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 class="font-serif text-4xl font-bold text-primary mb-12 text-center">Internal Training Supplement</h2>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="bg-gray-50 rounded-xl p-8">
+              <h3 class="font-serif text-xl font-semibold text-primary mb-6">Key Terminology</h3>
+              <div class="space-y-4">
+                <div>
+                  <h4 class="font-semibold text-primary">Threat Intelligence</h4>
+                  <p class="text-sm text-secondary">Evidence-based knowledge about existing or emerging threats</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-primary">IoC (Indicator of Compromise)</h4>
+                  <p class="text-sm text-secondary">Artifacts that indicate potential intrusion (IPs, domains, hashes)</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-primary">TTPs (Tactics, Techniques, Procedures)</h4>
+                  <p class="text-sm text-secondary">Methods and patterns of activity used by threat actors</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-primary">APT (Advanced Persistent Threat)</h4>
+                  <p class="text-sm text-secondary">Sophisticated, prolonged cyberattack campaign</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-xl p-8">
+              <h3 class="font-serif text-xl font-semibold text-primary mb-6">How ATI Platforms Work</h3>
+              <div class="space-y-4">
+                <div class="flex items-start">
+                  <div class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <span class="text-teal-600 font-bold text-sm">1</span>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-primary">Data Collection</h4>
+                    <p class="text-sm text-secondary">Automated gathering from diverse sources</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <span class="text-blue-600 font-bold text-sm">2</span>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-primary">Processing &amp; Enrichment</h4>
+                    <p class="text-sm text-secondary">Parsing, normalization, and correlation</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <span class="text-purple-600 font-bold text-sm">3</span>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-primary">Analysis &amp; Production</h4>
+                    <p class="text-sm text-secondary">Human and AI-driven threat assessment</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <span class="text-green-600 font-bold text-sm">4</span>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-primary">Dissemination</h4>
+                    <p class="text-sm text-secondary">Delivery via portals, APIs, and alerts</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-xl p-8">
+              <h3 class="font-serif text-xl font-semibold text-primary mb-6">Best Practices</h3>
+              <ul class="space-y-3">
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                  <span class="text-sm text-secondary">Define clear objectives for threat intelligence</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                  <span class="text-sm text-secondary">Integrate with existing security tools</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                  <span class="text-sm text-secondary">Tailor intelligence to your specific needs</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                  <span class="text-sm text-secondary">Establish clear processes for consumption</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                  <span class="text-sm text-secondary">Regularly review and update your program</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                  <span class="text-sm text-secondary">Foster collaboration and information sharing</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                  <span class="text-sm text-secondary">Invest in team training and development</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                  <span class="text-sm text-secondary">Measure impact and demonstrate ROI</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="bg-primary text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p class="text-lg mb-4">Advanced Threat Intelligence Platforms: A Comparative Analysis</p>
+          <p class="text-gray-400">Comprehensive review of Cybersixgill and Recorded Future in the evolving cybersecurity landscape</p>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+        // Table of Contents functionality
+        const tocLinks = document.querySelectorAll('.toc-link');
+        const sections = document.querySelectorAll('section[id]');
+        const tocToggle = document.getElementById('toc-toggle');
+        const tocContainer = document.getElementById('toc-container');
+        const closeToc = document.getElementById('close-toc');
+
+        // Toggle TOC on mobile
+        tocToggle.addEventListener('click', () => {
+            tocContainer.classList.toggle('-translate-x-full');
+        });
+
+        // Close TOC on mobile
+        closeToc.addEventListener('click', () => {
+            tocContainer.classList.add('-translate-x-full');
+        });
+
+        // Close TOC when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 1024 && 
+                !tocContainer.contains(e.target) && 
+                e.target !== tocToggle &&
+                !tocContainer.classList.contains('-translate-x-full')) {
+                tocContainer.classList.add('-translate-x-full');
+            }
+        });
+
+        // Remove transform on large screens
+        function handleResize() {
+            if (window.innerWidth >= 1024) {
+                tocContainer.classList.remove('-translate-x-full');
+            }
+        }
+
+        window.addEventListener('resize', handleResize);
+        handleResize(); // Initial call
+
+        // Smooth scrolling for TOC links
+        tocLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                
+                if (targetSection) {
+                    const offsetTop = targetSection.offsetTop - 20;
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
+                
+                // Close mobile TOC after clicking
+                if (window.innerWidth < 1024) {
+                    tocContainer.classList.add('-translate-x-full');
+                }
+            });
+        });
+
+        // Highlight active section in TOC
+        function updateActiveTocLink() {
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                const sectionBottom = sectionTop + section.offsetHeight;
+                
+                if (window.scrollY >= sectionTop && window.scrollY < sectionBottom) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+            
+            tocLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + currentSection) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Update active TOC link on scroll
+        window.addEventListener('scroll', updateActiveTocLink);
+        updateActiveTocLink(); // Initial call
+    </script>
+  
+
+</body></html>

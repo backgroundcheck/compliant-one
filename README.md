@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B.svg)](https://streamlit.io)
 
-**Enterprise RegTech Platform - Advanced AI-powered Compliance Automation, OSINT Intelligence, and Real-time Transparency Monitoring**
+## Enterprise RegTech Platform - Advanced AI-powered Compliance Automation, OSINT Intelligence, and Real-time Transparency Monitoring
 
 ## 🎯 Overview
 
@@ -25,7 +25,7 @@
 
 ### Core Services
 
-```
+```text
 compliant-one/
 ├── 🔐 authentication/          # User management & access control
 ├── 📊 dashboard/              # Web interface & visualization
@@ -83,29 +83,33 @@ compliant-one/
 ### Installation
 
 1. **Clone the repository:**
+
 ```bash
 git clone https://github.com/backgroundcheck/compliant-one-regtech.git
 cd compliant-one-regtech
 ```
 
-2. **Install dependencies:**
+1. **Install dependencies:**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. **Run quick setup:**
+
 ```bash
 chmod +x quickstart.sh
 ./quickstart.sh
 ```
 
-4. **Launch the platform:**
+1. **Launch the platform:**
+
 ```bash
 streamlit run dashboard/main.py --server.port 8502
 ```
 
-5. **Access the dashboard:**
-   - URL: http://localhost:8502
+1. **Access the dashboard:**
+   - URL: <http://localhost:8502>
    - Login: `admin` / `admin123`
 
 ## 📊 Platform Capabilities
@@ -152,18 +156,21 @@ The platform includes a comprehensive web scraping system for intelligence gathe
 ## 🎯 Use Cases
 
 ### Financial Services
+
 - **Customer Onboarding**: Automated KYC/CDD with risk scoring
 - **Transaction Monitoring**: Real-time AML compliance
 - **Sanctions Compliance**: Continuous screening and monitoring
 - **Regulatory Reporting**: Automated FATF and jurisdictional reporting
 
 ### Government & Public Sector
+
 - **Transparency Monitoring**: Corruption and governance tracking
 - **Procurement Oversight**: Automated irregularity detection
 - **Public Official Screening**: PEP and conflict of interest monitoring
 - **Intelligence Gathering**: OSINT collection and analysis
 
 ### Corporate Compliance
+
 - **Vendor Screening**: Supply chain risk assessment
 - **Due Diligence**: Comprehensive background investigations
 - **ESG Monitoring**: Environmental and governance compliance
@@ -171,42 +178,49 @@ The platform includes a comprehensive web scraping system for intelligence gathe
 - Cross-border identity validation
 
 ### 📊 KYC/CDD/EDD Screening
+
 - Automated Customer Due Diligence
 - Enhanced Due Diligence for high-risk customers
 - Risk-based customer categorization
 - Simplified Due Diligence for low-risk scenarios
 
 ### 🕵️‍♂️ OSINT-based Risk Profiling
+
 - Open Source Intelligence gathering
 - AI-powered risk assessment
 - Real-time threat intelligence
 - Behavioral pattern analysis
 
 ### 🌐 Beneficial Ownership Screening
+
 - Ultimate Beneficial Owner (UBO) identification
 - Corporate structure mapping
 - Ownership chain analysis
 - Hidden beneficial ownership detection
 
 ### ⚖️ Sanctions, PEP, Watchlist Screening
+
 - Real-time sanctions list screening
 - Politically Exposed Persons (PEP) monitoring
 - Global watchlist integration
 - Automated match scoring and validation
 
 ### 🔍 Ongoing Monitoring & Adverse Media
+
 - Continuous customer monitoring
 - Adverse media surveillance
 - Regulatory change detection
 - Alert management and case resolution
 
 ### 🔗 Transaction Monitoring Integration
+
 - Real-time transaction analysis
 - Suspicious activity detection
 - ML-powered pattern recognition
 - Regulatory threshold monitoring
 
 ### 💼 Regulatory Reporting Support
+
 - Automated compliance reporting
 - FATF-aligned documentation
 - Audit trail management
@@ -248,28 +262,33 @@ compliant-one/
 ## 🚀 Quick Start
 
 1. **Clone Repository**
+
 ```bash
 git clone https://github.com/compliant-one/platform.git
 cd compliant-one
 ```
 
 2. **Install Dependencies**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. **Configure Platform**
+
 ```bash
 cp config/settings.example.py config/settings.py
 # Edit configuration as needed
 ```
 
 4. **Initialize Database**
+
 ```bash
 python manage.py migrate
 ```
 
 5. **Start Platform**
+
 ```bash
 streamlit run dashboard/main.py
 ```
@@ -277,6 +296,7 @@ streamlit run dashboard/main.py
 ## ✨ Key Features
 
 ### 🔍 Core Compliance Services
+
 - **Digital Identity Verification** - Multi-source identity validation
 - **KYC/CDD/EDD Screening** - Comprehensive customer due diligence  
 - **OSINT Risk Profiling** - Open-source intelligence gathering
@@ -286,6 +306,7 @@ streamlit run dashboard/main.py
 - **Transaction Monitoring** - ML-powered transaction analysis
 
 ### 🤖 Phase 2: Advanced AI & Compliance Automation
+
 - **AI Risk Analytics** - Machine learning-based risk assessment
 - **Adverse Media Intelligence** - Real-time media monitoring and sentiment analysis
 - **Smart Rules Engine** - Customizable compliance rules with automated actions
@@ -293,6 +314,7 @@ streamlit run dashboard/main.py
 - **Comprehensive Assessment** - Complete AI-powered compliance evaluation
 
 ### �️ Scraping Control Panel
+
 - **Multi-Source Data Collection** - Automated web scraping for compliance data
 - **Advanced Job Scheduling** - Cron, interval, daily, and weekly scheduling
 - **Real-Time Monitoring** - Progress tracking and performance analytics
@@ -301,6 +323,7 @@ streamlit run dashboard/main.py
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Python 3.8 or higher
 - MongoDB (for authentication and data storage)
 - Internet connection (for real-time data sources)
@@ -308,28 +331,32 @@ streamlit run dashboard/main.py
 ### Installation
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/yourusername/compliant-one.git
    cd compliant-one
    ```
 
 2. **Install dependencies:**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Run the platform:**
+
    ```bash
    streamlit run dashboard/main.py --server.port=8501
    ```
 
 4. **Access the platform:**
-   - URL: http://localhost:8501
+   - URL: <http://localhost:8501>
    - Login: admin/admin123
 
 ## 🔧 Usage Examples
 
 ### CSV Data Import
+
 ```bash
 # Import OFAC SDN list
 python3 import_sanctions_csv.py --csv_file ofac_sdn.csv --list_name "OFAC_SDN_2024"
@@ -339,6 +366,7 @@ python3 import_sanctions_csv.py --csv_file eu_list.csv --preview
 ```
 
 ### Phase 2 AI Capabilities
+
 ```bash
 # Run comprehensive Phase 2 demo
 python3 phase2_demo.py
@@ -348,6 +376,7 @@ python3 interactive_demo.py
 ```
 
 ### Scraping Control Panel
+
 ```bash
 # Initialize scraping admin setup
 python3 setup_scraping_admin.py
@@ -359,18 +388,21 @@ python3 demo_scraping_panel.py
 ## �📋 Features in Detail
 
 ### AI Risk Analytics
+
 - **Anomaly Detection:** Isolation Forest algorithms for outlier identification
 - **Predictive Analytics:** Risk forecasting with temporal analysis
 - **Network Analysis:** Relationship mapping and connection analysis
 - **Customer Profiling:** Multi-dimensional risk assessment
 
 ### Adverse Media Intelligence
+
 - **Real-Time Monitoring:** Continuous scanning of news and social media
 - **Sentiment Analysis:** AI-powered sentiment scoring
 - **Source Aggregation:** Reuters, Bloomberg, BBC, Twitter, LinkedIn
 - **Alert Management:** Configurable thresholds and notifications
 
 ### Smart Rules Engine
+
 - **Dynamic Rules:** Customizable compliance rules with multiple operators
 - **Automated Actions:** Alert generation, case creation, transaction blocking
 - **Policy Management:** Rule versioning and approval workflows
@@ -424,6 +456,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 For support, documentation, or questions:
+
 - Check the documentation in the `docs/` directory
 - Open an issue on GitHub
 - Contact our support team
@@ -446,10 +479,10 @@ For support, documentation, or questions:
 
 ## 📞 Contact
 
-- **Website**: https://compliant.one
-- **Email**: contact@compliant.one
-- **Support**: support@compliant.one
-- **Sales**: sales@compliant.one
+- **Website**: <https://compliant.one>
+- **Email**: <contact@compliant.one>
+- **Support**: <support@compliant.one>
+- **Sales**: <sales@compliant.one>
 
 ---
 
