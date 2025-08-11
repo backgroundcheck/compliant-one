@@ -298,6 +298,12 @@ streamlit run dashboard/main.py
 ### 🔍 Core Compliance Services
 
 - **Digital Identity Verification** - Multi-source identity validation
+
+## 🔐 Secure configuration
+
+- Use environment variables for all API keys via `config/secure_api_config.py`.
+- Copy `.env.example` or generate `.env.template` and create a local `.env` file; do not commit it.
+- `Keys.txt` and `config/api_config.py` are intentionally ignored to prevent secret leakage.
 - **KYC/CDD/EDD Screening** - Comprehensive customer due diligence  
 - **OSINT Risk Profiling** - Open-source intelligence gathering
 - **Beneficial Ownership** - Ultimate beneficial owner identification
