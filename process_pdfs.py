@@ -15,9 +15,10 @@ import hashlib
 import re
 from collections import Counter
 
-# Add project root to path
-project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root))
+# Add project root to path (this file lives at the project root)
+project_root = Path(__file__).parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from utils.logger import get_logger
 
@@ -45,20 +46,20 @@ class BatchPDFProcessor:
                 self.logger.info("OCR service initialized for scanned PDF support")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize OCR service: {e}")
-        
         # Paths
-        self.project_root = Path(__file__).parent.parent.parent
+        # Use repository root (directory containing this file)
+        self.project_root = Path(__file__).parent
         self.data_folder = self.project_root / "data"
         self.pdf_folders = [
             self.data_folder / "pdfs" / "downloaded_pdfs",
             self.data_folder / "documents",
-            self.data_folder / "uploads"
+            self.data_folder / "uploads",
         ]
-        
+
         # Database paths
         self.main_db = self.data_folder / "entities.db"
         self.legacy_db = self.data_folder / "legacy_data" / "documents.db"
-        
+
         # Entity extraction patterns
         self.entity_patterns = {
             'person_name': r'\b[A-Z][a-z]+ [A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b',
@@ -72,9 +73,9 @@ class BatchPDFProcessor:
             'license': r'\b(?:license|permit|registration)\s+no[.:]?\s*[A-Z0-9-]{5,20}\b',
             'account': r'\b\d{10,18}\b',
             'corruption_keyword': r'\b(?:corruption|bribery|kickback|embezzlement|fraud|misconduct)\b',
-            'sanctions_keyword': r'\b(?:OFAC|SDN|sanctions|blacklist|watchlist|embargo)\b'
+            'sanctions_keyword': r'\b(?:OFAC|SDN|sanctions|blacklist|watchlist|embargo)\b',
         }
-        
+
         self._setup_database()
         self.logger.info("Batch PDF processor initialized")
     
