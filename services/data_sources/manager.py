@@ -245,9 +245,21 @@ class DataSourcesManager:
                 for source_articles in media_results.values():
                     all_articles.extend(source_articles)
                 
+                # Normalize articles to dicts whether dataclass or plain dict
+                norm_articles = []
+                for article in all_articles:
+                    if isinstance(article, dict):
+                        norm_articles.append(article)
+                    else:
+                        try:
+                            norm_articles.append(asdict(article))
+                        except Exception:
+                            # Best-effort fallback
+                            norm_articles.append({"repr": repr(article)})
+
                 search_results["results"]["adverse_media"] = {
-                    "articles_found": len(all_articles),
-                    "articles": [asdict(article) for article in all_articles]
+                    "articles_found": len(norm_articles),
+                    "articles": norm_articles
                 }
             except Exception as e:
                 self.logger.error(f"Failed to search adverse media: {e}")
@@ -444,6 +456,22 @@ class DataSourcesManager:
                 stats["corruption"].get("total_cases", 0)
             )
             
+            # Compute coverage counters with robust handling for dict/objects
+            media_source_types = 0
+            if self.adverse_media_service:
+                try:
+                    types = set()
+                    for src in self.adverse_media_service.sources.values():
+                        if isinstance(src, dict):
+                            t = src.get("type")
+                        else:
+                            t = getattr(src, "source_type", None)
+                        if t:
+                            types.add(t)
+                    media_source_types = len(types)
+                except Exception:
+                    media_source_types = 0
+
             stats["summary"] = {
                 "total_data_sources": total_sources,
                 "total_records": total_records,
@@ -455,9 +483,7 @@ class DataSourcesManager:
                     "pep_coverage_types": len(set(
                         source.coverage_type for source in self.pep_service.sources.values()
                     )),
-                    "media_source_types": len(set(
-                        source.source_type for source in self.adverse_media_service.sources.values()
-                    )) if self.adverse_media_service else 0,
+                    "media_source_types": media_source_types,
                     "corruption_agencies": len(set(
                         source.agency_type for source in self.corruption_service.sources.values()
                     ))

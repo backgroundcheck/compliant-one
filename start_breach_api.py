@@ -72,12 +72,13 @@ def main():
         print("📚 API Documentation: http://localhost:8000/docs")
         print("=" * 60)
         
-        # Start the server
+        # Start the server; disable reload by default for stability in background runs
+        reload_enabled = os.getenv("BREACH_API_RELOAD", "false").lower() == "true"
         uvicorn.run(
             "api.main:app",
             host="0.0.0.0",
             port=8000,
-            reload=True,
+            reload=reload_enabled,
             log_level="info"
         )
         

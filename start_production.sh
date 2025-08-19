@@ -1,3 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export API_PORT="${API_PORT:-8000}"
+export ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-*}"
+
+if command -v gunicorn >/dev/null 2>&1; then
+  exec gunicorn -c gunicorn_conf.py api.main:app
+else
+  # Fallback to uvicorn via the existing script
+  exec python start_breach_api.py
+fi
 #!/bin/bash
 
 # Production Startup Script for Threat Intelligence System

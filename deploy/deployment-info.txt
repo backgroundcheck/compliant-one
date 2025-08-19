@@ -1,0 +1,7 @@
+Compliant-One Quick Deployment
+=============================
+Instance ID: i-09cbb3e6ea2651f05
+Public IP: 18.139.83.128
+SSH Command: ssh -i compliant-one-key.pem ec2-user@18.139.83.128
+Website: http://18.139.83.128
+Deployed: Mon Aug 18 22:00:59 PKT 2025

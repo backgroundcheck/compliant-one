@@ -1,4 +1,52 @@
-"""
+"""or public disclosure forums
+        - Rate limiting and anonymization via Tor
+        - Exclude illegal marketplaces
+        """
+        results = {
+            'success': True,
+            'sources_checked': 0,
+            'potential_breaches_found': 0,
+            'errors': []
+        }
+        
+        try:
+            if not self.config['darkweb_sources']['enabled']:
+                self.logger.info("Dark web monitoring is disabled in configuration")
+                return results
+            
+            tor_proxy = self.config['darkweb_sources']['tor_proxy']
+            rate_limit = self.config['darkweb_sources'].get('rate_limit', 5.0)
+            excluded_domains = self.config['darkweb_sources'].get('excluded_domains', [])
+            
+            async with aiohttp.ClientSession() as session:
+                for source in self.config['darkweb_sources']['sources']:
+                    if not source.get('is_active', True):
+                        continue
+                    
+                    try:
+                        self.logger.info(f"Monitoring dark web source: {source['source_name']}")
+                        
+                        # Ethical OSINT scraping logic here
+                        # ...
+                        
+                        results['sources_checked'] += 1
+                        
+                        # Rate limiting
+                        await asyncio.sleep(rate_limit)
+                        
+                    except Exception as e:
+                        error_msg = f"Error monitoring dark web source {source['source_name']}: {e}"
+                        self.logger.error(error_msg)
+                        results['errors'].append(error_msg)
+            
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error in dark web monitoring: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
 Breach Intelligence Service
 GDPR/CCPA-compliant breach monitoring and credential exposure detection
 
@@ -16,6 +64,7 @@ import sys
 import asyncio
 import aiohttp
 import sqlite3
+import psycopg2
 import logging
 import hashlib
 import bcrypt
@@ -83,6 +132,10 @@ class BreachIntelligenceService:
         self.project_root = Path(__file__).parent.parent.parent
         self.data_folder = self.project_root / "data" / "breach_intelligence"
         self.db_path = self.data_folder / "breach_intel.db"
+        self.db_url = os.getenv("DATABASE_URL")
+        self.db_type = (
+            "postgres" if (self.db_url or "").startswith("postgres") else "sqlite"
+        )
         
         # Create directories
         self.data_folder.mkdir(parents=True, exist_ok=True)
@@ -91,125 +144,282 @@ class BreachIntelligenceService:
         self.k_anonymity_threshold = 1000  # Minimum group size for k-anonymity
         self.data_retention_days = 30  # GDPR compliance - minimal retention
         self.hash_algorithm = 'sha256'  # For credential hashing
-        
+
         # Rate limiting for ethical scraping
         self.request_delay = 2.0  # Seconds between requests
         self.max_concurrent_requests = 3
-        
+
         # Initialize database
         self._setup_database()
-        
+
         # Load configuration
         self.config = self._load_config()
-        
+
         self.logger.info("Breach Intelligence Service initialized with privacy-by-design")
 
+    def _get_connection(self):
+        """Return a DB connection for the active backend."""
+        if self.db_type == "postgres":
+            # psycopg2 supports PostgreSQL URIs
+            return psycopg2.connect(self.db_url)
+        else:
+            return sqlite3.connect(self.db_path)
+
+    def _prepare_query(self, query: str) -> str:
+        """Adapt parameter placeholder style for the active backend.
+
+        We write queries using '?' placeholders; convert to '%s' for Postgres.
+        """
+        if self.db_type == "postgres":
+            return query.replace("?", "%s")
+        return query
+
+    def _execute(self, query: str, params: tuple = (), *, fetchone=False, fetchall=False, commit=False):
+        """Execute a query with parameters and optional fetch/commit.
+
+        Returns cursor.fetchone() or cursor.fetchall() based on flags,
+        or None for write-only operations.
+        """
+        q = self._prepare_query(query)
+        conn = self._get_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute(q, params)
+            result = None
+            if fetchone:
+                result = cur.fetchone()
+            elif fetchall:
+                result = cur.fetchall()
+            if commit:
+                conn.commit()
+            return result
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
     def _setup_database(self):
-        """Setup SQLite database with privacy-compliant schema"""
-        conn = sqlite3.connect(self.db_path)
+        """Setup database with privacy-compliant schema (SQLite/Postgres)"""
+        conn = self._get_connection()
         cursor = conn.cursor()
         
         # Breach metadata table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS breaches (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                breach_id TEXT UNIQUE NOT NULL,
-                name TEXT NOT NULL,
-                description TEXT,
-                breach_date DATE,
-                discovered_date DATE,
-                affected_accounts INTEGER,
-                data_types TEXT,  -- JSON array
-                severity TEXT,
-                source TEXT,
-                is_verified BOOLEAN,
-                metadata TEXT,  -- JSON
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        if self.db_type == "postgres":
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS breaches (
+                    id SERIAL PRIMARY KEY,
+                    breach_id TEXT UNIQUE NOT NULL,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    breach_date TIMESTAMP,
+                    discovered_date TIMESTAMP,
+                    affected_accounts INTEGER,
+                    data_types TEXT,
+                    severity TEXT,
+                    source TEXT,
+                    is_verified BOOLEAN,
+                    metadata TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
             )
-        ''')
+        else:
+            cursor.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS breaches (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    breach_id TEXT UNIQUE NOT NULL,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    breach_date DATE,
+                    discovered_date DATE,
+                    affected_accounts INTEGER,
+                    data_types TEXT,  -- JSON array
+                    severity TEXT,
+                    source TEXT,
+                    is_verified BOOLEAN,
+                    metadata TEXT,  -- JSON
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                '''
+            )
         
         # Anonymous hash table for k-anonymity checks
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS credential_hashes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                hash_prefix TEXT NOT NULL,  -- First 5 characters of hash
-                full_hash TEXT NOT NULL,
-                data_type TEXT NOT NULL,
-                breach_count INTEGER DEFAULT 1,
-                first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        if self.db_type == "postgres":
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS credential_hashes (
+                    id SERIAL PRIMARY KEY,
+                    hash_prefix TEXT NOT NULL,
+                    full_hash TEXT NOT NULL,
+                    data_type TEXT NOT NULL,
+                    breach_count INTEGER DEFAULT 1,
+                    first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
             )
-        ''')
+        else:
+            cursor.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS credential_hashes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    hash_prefix TEXT NOT NULL,  -- First 5 characters of hash
+                    full_hash TEXT NOT NULL,
+                    data_type TEXT NOT NULL,
+                    breach_count INTEGER DEFAULT 1,
+                    first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                '''
+            )
         
         # Monitoring targets (privacy-compliant)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS monitoring_targets (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                target_hash TEXT UNIQUE NOT NULL,  -- Hashed identifier
-                target_type TEXT NOT NULL,
-                alert_email TEXT,  -- Encrypted if stored
-                is_active BOOLEAN DEFAULT 1,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_checked TIMESTAMP
+        if self.db_type == "postgres":
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS monitoring_targets (
+                    id SERIAL PRIMARY KEY,
+                    target_hash TEXT UNIQUE NOT NULL,
+                    target_type TEXT NOT NULL,
+                    alert_email TEXT,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_checked TIMESTAMP
+                )
+                """
             )
-        ''')
+        else:
+            cursor.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS monitoring_targets (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    target_hash TEXT UNIQUE NOT NULL,  -- Hashed identifier
+                    target_type TEXT NOT NULL,
+                    alert_email TEXT,  -- Encrypted if stored
+                    is_active BOOLEAN DEFAULT 1,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_checked TIMESTAMP
+                )
+                '''
+            )
         
         # Alerts (minimal data retention)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS breach_alerts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                target_id INTEGER,
-                breach_id TEXT,
-                severity TEXT,
-                alert_type TEXT,
-                status TEXT DEFAULT 'new',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                expires_at TIMESTAMP,  -- Auto-cleanup for privacy
-                FOREIGN KEY (target_id) REFERENCES monitoring_targets (id),
-                FOREIGN KEY (breach_id) REFERENCES breaches (breach_id)
+        if self.db_type == "postgres":
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS breach_alerts (
+                    id SERIAL PRIMARY KEY,
+                    target_id INTEGER,
+                    breach_id TEXT,
+                    severity TEXT,
+                    alert_type TEXT,
+                    status TEXT DEFAULT 'new',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP,
+                    FOREIGN KEY (target_id) REFERENCES monitoring_targets (id),
+                    FOREIGN KEY (breach_id) REFERENCES breaches (breach_id)
+                )
+                """
             )
-        ''')
+        else:
+            cursor.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS breach_alerts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    target_id INTEGER,
+                    breach_id TEXT,
+                    severity TEXT,
+                    alert_type TEXT,
+                    status TEXT DEFAULT 'new',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP,  -- Auto-cleanup for privacy
+                    FOREIGN KEY (target_id) REFERENCES monitoring_targets (id),
+                    FOREIGN KEY (breach_id) REFERENCES breaches (breach_id)
+                )
+                '''
+            )
         
         # OSINT sources tracking
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS osint_sources (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                source_name TEXT UNIQUE NOT NULL,
-                source_type TEXT NOT NULL,  -- paste_site, forum, directory
-                base_url TEXT,
-                last_scraped TIMESTAMP,
-                is_active BOOLEAN DEFAULT 1,
-                rate_limit_delay INTEGER DEFAULT 2,
-                compliance_notes TEXT
+        if self.db_type == "postgres":
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS osint_sources (
+                    id SERIAL PRIMARY KEY,
+                    source_name TEXT UNIQUE NOT NULL,
+                    source_type TEXT NOT NULL,
+                    base_url TEXT,
+                    last_scraped TIMESTAMP,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    rate_limit_delay INTEGER DEFAULT 2,
+                    compliance_notes TEXT
+                )
+                """
             )
-        ''')
+        else:
+            cursor.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS osint_sources (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    source_name TEXT UNIQUE NOT NULL,
+                    source_type TEXT NOT NULL,  -- paste_site, forum, directory
+                    base_url TEXT,
+                    last_scraped TIMESTAMP,
+                    is_active BOOLEAN DEFAULT 1,
+                    rate_limit_delay INTEGER DEFAULT 2,
+                    compliance_notes TEXT
+                )
+                '''
+            )
         
         # Enrichment data from SpiderFoot/Maltego
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS enrichment_data (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                breach_id TEXT,
-                indicator_type TEXT,  -- ip, domain, email, hash
-                indicator_value TEXT,
-                confidence_score REAL,
-                source_tool TEXT,  -- spiderfoot, maltego, etc.
-                metadata TEXT,  -- JSON
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (breach_id) REFERENCES breaches (breach_id)
+        if self.db_type == "postgres":
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS enrichment_data (
+                    id SERIAL PRIMARY KEY,
+                    breach_id TEXT,
+                    indicator_type TEXT,
+                    indicator_value TEXT,
+                    confidence_score REAL,
+                    source_tool TEXT,
+                    metadata TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (breach_id) REFERENCES breaches (breach_id)
+                )
+                """
             )
-        ''')
+        else:
+            cursor.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS enrichment_data (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    breach_id TEXT,
+                    indicator_type TEXT,  -- ip, domain, email, hash
+                    indicator_value TEXT,
+                    confidence_score REAL,
+                    source_tool TEXT,  -- spiderfoot, maltego, etc.
+                    metadata TEXT,  -- JSON
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (breach_id) REFERENCES breaches (breach_id)
+                )
+                '''
+            )
         
-        # Create indexes for performance
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_breach_date ON breaches(breach_date)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_hash_prefix ON credential_hashes(hash_prefix)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_target_hash ON monitoring_targets(target_hash)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_alert_status ON breach_alerts(status)')
-        
-        conn.commit()
-        conn.close()
-        
-        self.logger.info("Breach intelligence database setup completed")
+    # Create indexes for performance
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_breach_date ON breaches(breach_date)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_hash_prefix ON credential_hashes(hash_prefix)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_target_hash ON monitoring_targets(target_hash)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_alert_status ON breach_alerts(status)')
+
+    conn.commit()
+    conn.close()
+
+    self.logger.info("Breach intelligence database setup completed")
 
     def _load_config(self) -> Dict[str, Any]:
         """Load privacy-compliant configuration"""
@@ -338,18 +548,16 @@ class BreachIntelligenceService:
             full_hash = self._hash_credential(credential)
             hash_prefix = self._get_hash_prefix(full_hash)
             
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
             # Get all hashes with same prefix (k-anonymity set)
-            cursor.execute('''
+            matches = self._execute(
+                '''
                 SELECT full_hash, breach_count, data_type 
                 FROM credential_hashes 
                 WHERE hash_prefix = ? AND data_type = ?
-            ''', (hash_prefix, credential_type))
-            
-            matches = cursor.fetchall()
-            conn.close()
+                ''',
+                (hash_prefix, credential_type),
+                fetchall=True,
+            )
             
             # Check if we have enough matches for k-anonymity
             if len(matches) < self.k_anonymity_threshold:
@@ -564,31 +772,72 @@ class BreachIntelligenceService:
     async def _store_potential_breach(self, breach_data: Dict[str, Any]):
         """Store potential breach data (privacy-compliant)"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
             breach_id = hashlib.sha256(f"{breach_data['source']}{breach_data['source_id']}".encode()).hexdigest()[:16]
-            
-            cursor.execute('''
-                INSERT OR REPLACE INTO breaches 
-                (breach_id, name, description, discovered_date, affected_accounts, 
-                 data_types, severity, source, is_verified, metadata)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                breach_id,
-                f"Potential breach from {breach_data['source']}",
-                breach_data.get('description', ''),
-                breach_data['discovered_date'],
-                breach_data.get('email_count', 0) + breach_data.get('password_count', 0),
-                json.dumps(['email', 'password']),
-                'medium',
-                breach_data['source'],
-                False,  # Not verified yet
-                json.dumps(breach_data)
-            ))
-            
-            conn.commit()
-            conn.close()
+
+            name = f"Potential breach from {breach_data['source']}"
+            description = breach_data.get('description', '')
+            discovered_date = breach_data['discovered_date']
+            affected_accounts = breach_data.get('email_count', 0) + breach_data.get('password_count', 0)
+            data_types = json.dumps(['email', 'password'])
+            severity = 'medium'
+            source = breach_data['source']
+            is_verified = False
+            metadata = json.dumps(breach_data)
+
+            if self.db_type == 'postgres':
+                # Use upsert with ON CONFLICT
+                self._execute(
+                    '''
+                    INSERT INTO breaches (breach_id, name, description, discovered_date, affected_accounts, data_types, severity, source, is_verified, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT (breach_id) DO UPDATE SET
+                        name = EXCLUDED.name,
+                        description = EXCLUDED.description,
+                        discovered_date = EXCLUDED.discovered_date,
+                        affected_accounts = EXCLUDED.affected_accounts,
+                        data_types = EXCLUDED.data_types,
+                        severity = EXCLUDED.severity,
+                        source = EXCLUDED.source,
+                        is_verified = EXCLUDED.is_verified,
+                        metadata = EXCLUDED.metadata,
+                        updated_at = CURRENT_TIMESTAMP
+                    ''',
+                    (
+                        breach_id,
+                        name,
+                        description,
+                        discovered_date,
+                        affected_accounts,
+                        data_types,
+                        severity,
+                        source,
+                        is_verified,
+                        metadata,
+                    ),
+                    commit=True,
+                )
+            else:
+                # SQLite: emulate upsert with INSERT OR REPLACE
+                self._execute(
+                    '''
+                    INSERT OR REPLACE INTO breaches 
+                    (breach_id, name, description, discovered_date, affected_accounts, data_types, severity, source, is_verified, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''',
+                    (
+                        breach_id,
+                        name,
+                        description,
+                        discovered_date,
+                        affected_accounts,
+                        data_types,
+                        severity,
+                        source,
+                        is_verified,
+                        metadata,
+                    ),
+                    commit=True,
+                )
             
             self.logger.info(f"Stored potential breach: {breach_id}")
             
@@ -684,11 +933,11 @@ class BreachIntelligenceService:
         
         try:
             # Get breach data
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('SELECT * FROM breaches WHERE breach_id = ?', (breach_id,))
-            breach = cursor.fetchone()
+            breach = self._execute(
+                'SELECT * FROM breaches WHERE breach_id = ?',
+                (breach_id,),
+                fetchone=True,
+            )
             
             if not breach:
                 return {'success': False, 'error': 'Breach not found'}
@@ -705,7 +954,6 @@ class BreachIntelligenceService:
                 results['enrichment_sources'] += 1
                 results['threat_actors'].extend(maltego_results.get('threat_actors', []))
             
-            conn.close()
             return results
             
         except Exception as e:
@@ -768,24 +1016,61 @@ class BreachIntelligenceService:
             # Hash the credential for privacy
             target_hash = self._hash_credential(credential)
             
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                INSERT OR REPLACE INTO monitoring_targets 
-                (target_hash, target_type, alert_email, is_active, created_at)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (
-                target_hash,
-                credential_type,
-                alert_email,  # Could be encrypted in production
-                True,
-                datetime.now()
-            ))
-            
-            target_id = cursor.lastrowid
-            conn.commit()
-            conn.close()
+            if self.db_type == 'postgres':
+                # Use upsert to avoid duplicates and return id
+                inserted = self._execute(
+                    '''
+                    INSERT INTO monitoring_targets (target_hash, target_type, alert_email, is_active, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    ON CONFLICT (target_hash) DO UPDATE SET
+                        target_type = EXCLUDED.target_type,
+                        alert_email = EXCLUDED.alert_email,
+                        is_active = EXCLUDED.is_active,
+                        last_checked = monitoring_targets.last_checked
+                    RETURNING id
+                    ''' ,
+                    (
+                        target_hash,
+                        credential_type,
+                        alert_email,
+                        True,
+                        datetime.now(),
+                    ),
+                    fetchone=True,
+                    commit=True,
+                )
+                target_id = inserted[0] if inserted else None
+                if not target_id:
+                    # Fallback to lookup
+                    row = self._execute(
+                        'SELECT id FROM monitoring_targets WHERE target_hash = ?',
+                        (target_hash,),
+                        fetchone=True,
+                    )
+                    target_id = row[0] if row else None
+            else:
+                # SQLite
+                self._execute(
+                    '''
+                    INSERT OR REPLACE INTO monitoring_targets 
+                    (target_hash, target_type, alert_email, is_active, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    ''',
+                    (
+                        target_hash,
+                        credential_type,
+                        alert_email,  # Could be encrypted in production
+                        True,
+                        datetime.now(),
+                    ),
+                    commit=True,
+                )
+                row = self._execute(
+                    'SELECT id FROM monitoring_targets WHERE target_hash = ?',
+                    (target_hash,),
+                    fetchone=True,
+                )
+                target_id = row[0] if row else None
             
             return {
                 'success': True,
@@ -804,37 +1089,39 @@ class BreachIntelligenceService:
     async def get_breach_statistics(self) -> Dict[str, Any]:
         """Get privacy-compliant breach statistics"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
             # Total breaches
-            cursor.execute('SELECT COUNT(*) FROM breaches')
-            total_breaches = cursor.fetchone()[0]
-            
+            total_breaches = self._execute(
+                'SELECT COUNT(*) FROM breaches',
+                fetchone=True,
+            )[0]
+
             # Breaches by severity
-            cursor.execute('''
-                SELECT severity, COUNT(*) 
-                FROM breaches 
-                GROUP BY severity
-            ''')
-            severity_stats = dict(cursor.fetchall())
-            
+            rows = self._execute(
+                'SELECT severity, COUNT(*) FROM breaches GROUP BY severity',
+                fetchall=True,
+            )
+            severity_stats = dict(rows)
+
             # Recent breaches (last 30 days)
-            cursor.execute('''
-                SELECT COUNT(*) FROM breaches 
-                WHERE discovered_date >= date('now', '-30 days')
-            ''')
-            recent_breaches = cursor.fetchone()[0]
-            
+            cutoff = datetime.now() - timedelta(days=30)
+            # Use timestamp comparison for both backends
+            recent_breaches = self._execute(
+                'SELECT COUNT(*) FROM breaches WHERE discovered_date >= ?',
+                (cutoff,),
+                fetchone=True,
+            )[0]
+
             # Monitoring targets
-            cursor.execute('SELECT COUNT(*) FROM monitoring_targets WHERE is_active = 1')
-            active_targets = cursor.fetchone()[0]
-            
+            active_targets = self._execute(
+                'SELECT COUNT(*) FROM monitoring_targets WHERE is_active = 1',
+                fetchone=True,
+            )[0]
+
             # Active alerts
-            cursor.execute('SELECT COUNT(*) FROM breach_alerts WHERE status = "new"')
-            active_alerts = cursor.fetchone()[0]
-            
-            conn.close()
+            active_alerts = self._execute(
+                'SELECT COUNT(*) FROM breach_alerts WHERE status = "new"',
+                fetchone=True,
+            )[0]
             
             return {
                 'success': True,
@@ -866,9 +1153,6 @@ class BreachIntelligenceService:
         - Audit logging
         """
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
             cleanup_stats = {
                 'alerts_cleaned': 0,
                 'old_breaches_archived': 0,
@@ -878,23 +1162,35 @@ class BreachIntelligenceService:
             # Cleanup expired alerts
             expiry_date = datetime.now() - timedelta(days=self.data_retention_days)
             
-            cursor.execute('SELECT COUNT(*) FROM breach_alerts WHERE created_at < ?', (expiry_date,))
-            expired_alerts = cursor.fetchone()[0]
-            
-            cursor.execute('DELETE FROM breach_alerts WHERE created_at < ?', (expiry_date,))
+            expired_alerts = self._execute(
+                'SELECT COUNT(*) FROM breach_alerts WHERE created_at < ?',
+                (expiry_date,),
+                fetchone=True,
+            )[0]
+            self._execute(
+                'DELETE FROM breach_alerts WHERE created_at < ?',
+                (expiry_date,),
+                commit=True,
+            )
             cleanup_stats['alerts_cleaned'] = expired_alerts
             
             # Archive old breach data (keep metadata, remove sensitive data)
-            cursor.execute('''
+            updated = self._execute(
+                '''
                 UPDATE breaches 
                 SET metadata = '{"archived": true, "original_metadata_removed": true}' 
-                WHERE discovered_date < ? AND metadata NOT LIKE '%archived%'
-            ''', (expiry_date,))
-            
-            cleanup_stats['old_breaches_archived'] = cursor.rowcount
-            
-            conn.commit()
-            conn.close()
+                WHERE discovered_date < ? AND (metadata IS NULL OR metadata NOT LIKE '%archived%')
+                ''',
+                (expiry_date,),
+                commit=True,
+            )
+            # cursor.rowcount isn't available after connection close in helper; recompute count
+            archived_count = self._execute(
+                "SELECT COUNT(*) FROM breaches WHERE discovered_date < ? AND metadata LIKE '%archived%'",
+                (expiry_date,),
+                fetchone=True,
+            )[0]
+            cleanup_stats['old_breaches_archived'] = archived_count
             
             self.logger.info(f"Completed privacy compliance cleanup: {cleanup_stats}")
             
@@ -923,16 +1219,16 @@ class BreachIntelligenceService:
             
             # Check database
             try:
-                conn = sqlite3.connect(self.db_path)
-                cursor = conn.cursor()
-                cursor.execute('SELECT COUNT(*) FROM breaches')
+                _ = self._execute('SELECT COUNT(*) FROM breaches', fetchone=True)
                 health_status['database'] = True
-                conn.close()
             except Exception as e:
                 self.logger.error(f"Database health check failed: {e}")
             
             # Check monitoring status
             health_status['monitoring_active'] = True  # Always active for ethical monitoring
+
+            # Overall status
+            health_status['status'] = 'healthy' if health_status.get('database') else 'degraded'
             
             # Check enrichment tools
             for tool, config in self.config['enrichment_tools'].items():
@@ -943,6 +1239,7 @@ class BreachIntelligenceService:
         except Exception as e:
             self.logger.error(f"Health check failed: {e}")
             return {
+                'status': 'error',
                 'database': False,
                 'privacy_compliance': False,
                 'error': str(e)
