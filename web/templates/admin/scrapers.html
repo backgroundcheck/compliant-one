@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<article>
+  <header>
+    <h1>Scrapers</h1>
+    <p class="secondary">Create and control scraping jobs</p>
+  </header>
+
+  <details open>
+    <summary>Create Job</summary>
+    <form method="post" action="/ui/admin/scrapers/create">
+      <div class="grid">
+        <label>
+          Name
+          <input type="text" name="name" required />
+        </label>
+        <label>
+          Type
+          <select name="job_type">
+            {% for t in ScrapingType %}
+              <option value="{{ t.value }}">{{ t.value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          Priority
+          <select name="priority">
+            {% for p in JobPriority %}
+              <option value="{{ p.value }}">{{ p.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <label>
+        Target URLs (one per line)
+        <textarea name="target_urls" rows="4" placeholder="https://example.com/feed"></textarea>
+      </label>
+      <button type="submit">Create</button>
+    </form>
+  </details>
+
+  <section>
+    <h3>Jobs</h3>
+    {% if jobs %}
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Progress</th>
+            <th>URLs</th>
+            <th>Success/Fail</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for j in jobs %}
+            <tr>
+              <td>{{ j.name }}</td>
+              <td>{{ j.job_type.value }}</td>
+              <td>{{ j.status.value }}</td>
+              <td>{{ '%.1f'|format(j.progress) }}%</td>
+              <td>{{ j.processed_urls }}/{{ j.total_urls }}</td>
+              <td>{{ j.successful_extractions }}/{{ j.failed_extractions }}</td>
+              <td>
+                <div class="grid">
+                  <form method="post" action="/ui/admin/scrapers/{{ j.job_id }}/start">
+                    <button class="secondary" type="submit">Start</button>
+                  </form>
+                  <form method="post" action="/ui/admin/scrapers/{{ j.job_id }}/cancel">
+                    <button class="contrast" type="submit">Cancel</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="secondary">No jobs created yet.</p>
+    {% endif %}
+  </section>
+</article>
+{% endblock %}

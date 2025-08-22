@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<article>
+  <header>
+    <h1>Settings</h1>
+    <p class="secondary">Environment and configuration (read-only demo)</p>
+  </header>
+
+  <section>
+    <h3>Environment</h3>
+    <table>
+      <thead><tr><th>Key</th><th>Value</th></tr></thead>
+      <tbody>
+        {% for k, v in env.items() %}
+        <tr><td>{{ k }}</td><td><code>{{ v }}</code></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</article>
+{% endblock %}

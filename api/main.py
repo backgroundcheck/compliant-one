@@ -11,6 +11,8 @@ from typing import Dict, List, Optional, Any
 from fastapi import FastAPI, HTTPException, Depends, Security, status, Query, Path, Body, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, Field
 import uvicorn
@@ -73,6 +75,19 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Mount web UI static and templates router
+try:
+    from web.router import router as web_router
+    from web.admin_router import router as admin_router
+    app.include_router(web_router)
+    app.include_router(admin_router)
+    app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "change-me"))
+    if os.path.isdir(os.path.join(Path(__file__).parent.parent, 'web', 'static')):
+        app.mount("/static", StaticFiles(directory=str(Path(__file__).parent.parent / 'web' / 'static')), name="static")
+except Exception as _e:
+    # Non-fatal if web UI not available
+    pass
 
 # Add middleware
 def _parse_allowed_origins() -> list:

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+<article>
+  <header>
+    <h1>Manage Feeds</h1>
+    <p class="secondary">Add, enable/disable, and remove RSS/API feeds</p>
+  </header>
+
+  <details open>
+    <summary>Add Feed</summary>
+    <form method="post" action="/ui/admin/feeds/add">
+      <div class="grid">
+        <label>
+          Name
+          <input type="text" name="name" required />
+        </label>
+        <label>
+          URL
+          <input type="url" name="url" placeholder="https://..." />
+        </label>
+        <label>
+          Type
+          <select name="type">
+            <option value="rss">RSS</option>
+            <option value="api">API</option>
+          </select>
+        </label>
+        <label>
+          Tags (comma separated)
+          <input type="text" name="tags" placeholder="sanctions, news" />
+        </label>
+        <label>
+          Enabled
+          <input type="checkbox" name="enabled" checked />
+        </label>
+      </div>
+      <button type="submit">Add Feed</button>
+    </form>
+  </details>
+
+  <section>
+    <h3>Registered Feeds</h3>
+    {% if registry.feeds %}
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>URL</th>
+          <th>Tags</th>
+          <th>Enabled</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in registry.feeds %}
+        <tr>
+          <td>{{ f.name }}</td>
+          <td>{{ f.type }}</td>
+          <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <a href="{{ f.url }}" target="_blank">{{ f.url }}</a>
+          </td>
+          <td>{{ f.tags|join(', ') }}</td>
+          <td>
+            <form method="post" action="/ui/admin/feeds/{{ f.id }}/toggle">
+              <button class="secondary" type="submit">{{ 'Disable' if f.enabled else 'Enable' }}</button>
+            </form>
+          </td>
+          <td>
+            <form method="post" action="/ui/admin/feeds/{{ f.id }}/delete" onsubmit="return confirm('Delete this feed?')">
+              <button class="contrast" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="secondary">No feeds registered yet.</p>
+    {% endif %}
+  </section>
+</article>
+{% endblock %}

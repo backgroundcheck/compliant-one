@@ -12,8 +12,10 @@ RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
     && apt-get upgrade -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    && apt-get dist-upgrade -y \
+    && apt-get autoremove -y \
+    && apt-get autoclean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .

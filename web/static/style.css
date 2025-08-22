@@ -1,0 +1,9 @@
+:root{--brand:#1f4e79}
+.brand-link{color:var(--brand); font-weight:700}
+.hero{display:flex;gap:2rem;align-items:center;justify-content:space-between;margin:2rem 0}
+.hero h1{color:var(--brand);margin:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+.card{border:1px solid #e5e7eb;border-radius:10px;padding:1rem;background:#fff}
+.metrics{display:flex;gap:1rem;flex-wrap:wrap}
+.metric{padding:1rem;border:1px solid #e5e7eb;border-radius:8px;min-width:12rem;background:#fff}
+.login{max-width:400px;margin:2rem auto}

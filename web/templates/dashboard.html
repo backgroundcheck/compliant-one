@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Dashboard</h1>
+<p>Live metrics update every second via WebSocket.</p>
+<div class="metrics" id="metrics">
+  <div class="metric"><strong>Screenings/min</strong><div id="m1">-</div></div>
+  <div class="metric"><strong>Alerts/min</strong><div id="m2">-</div></div>
+  <div class="metric"><strong>Avg Latency</strong><div id="m3">-</div></div>
+  <div class="metric"><strong>Uptime</strong><div id="m4">-</div></div>
+  <div class="metric"><strong>Success Rate</strong><div id="m5">-</div></div>
+  <div class="metric"><strong>Error Rate</strong><div id="m6">-</div></div>
+  <div class="metric" style="flex:1 1 100%">
+    <canvas id="chart" height="120"></canvas>
+  </div>
+  
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const m1 = document.getElementById('m1');
+const m2 = document.getElementById('m2');
+const m3 = document.getElementById('m3');
+const m4 = document.getElementById('m4');
+const m5 = document.getElementById('m5');
+const m6 = document.getElementById('m6');
+const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+const ws = new WebSocket(proto + '://' + location.host + '/ui/ws');
+
+const ctx = document.getElementById('chart');
+const labels = [];
+const screenings = [];
+const alerts = [];
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: { labels, datasets: [
+    { label: 'Screenings/min', data: screenings, borderColor: '#1f4e79', tension: .3 },
+    { label: 'Alerts/min', data: alerts, borderColor: '#e11d48', tension: .3 }
+  ]},
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { x: { display: false } } }
+});
+
+ws.onmessage = (ev) => {
+  try { const d = JSON.parse(ev.data);
+    m1.textContent = d.screenings_per_min;
+    m2.textContent = d.alerts_per_min;
+    m3.textContent = d.avg_latency_ms + ' ms';
+    m4.textContent = d.uptime;
+    m5.textContent = d.success_rate + '%';
+    m6.textContent = d.error_rate + '%';
+    const ts = new Date().toLocaleTimeString();
+    labels.push(ts);
+    screenings.push(d.screenings_per_min);
+    alerts.push(d.alerts_per_min);
+    if (labels.length > 30) { labels.shift(); screenings.shift(); alerts.shift(); }
+    chart.update();
+  } catch(e) { console.error(e); }
+};
+</script>
+{% endblock %}

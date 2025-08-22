@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+<article>
+  <header>
+    <h1>Admin Control Panel</h1>
+    <p class="secondary">System overview and quick actions</p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="/ui/admin/feeds">Manage Feeds</a></li>
+      <li><a href="/ui/admin/scrapers">Scrapers</a></li>
+  <li><a href="/ui/admin/data">Data Quality</a></li>
+  <li><a href="/ui/admin/troubleshoot">Troubleshoot</a></li>
+  <li><a href="/ui/admin/settings">Settings</a></li>
+    </ul>
+  </nav>
+
+  <section class="grid">
+    <div>
+      <h3>Feeds</h3>
+      <p><strong>Total:</strong> <span id="feeds_total">{{ feeds_count }}</span></p>
+      <p><a href="/ui/admin/feeds">Configure feeds</a></p>
+    </div>
+    <div>
+      <h3>Scraping Jobs</h3>
+      <ul>
+        <li>Total jobs: <span id="jobs_total">{{ job_stats.total_jobs }}</span></li>
+        <li>Running: <span id="jobs_running">{{ job_stats.running_jobs }}</span></li>
+        <li>Total executions: <span id="exec_total">{{ job_stats.total_executions }}</span></li>
+      </ul>
+      <p><a href="/ui/admin/scrapers">Manage scrapers</a></p>
+    </div>
+  </section>
+
+  <section>
+    <h3>Recent Executions</h3>
+    {% if job_stats.recent_executions %}
+    <table>
+      <thead>
+        <tr>
+          <th>Execution ID</th>
+          <th>Status</th>
+          <th>Started</th>
+          <th>Completed</th>
+          <th>URLs</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ex in job_stats.recent_executions %}
+        <tr>
+          <td><code>{{ ex.execution_id }}</code></td>
+          <td>{{ ex.status }}</td>
+          <td>{{ ex.started_at }}</td>
+          <td>{{ ex.completed_at }}</td>
+          <td>{{ ex.urls_processed }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="secondary">No executions yet.</p>
+    {% endif %}
+  </section>
+</article>
+{% block scripts %}
+<script>
+  async function refreshMetrics(){
+    try{
+      const r = await fetch('/ui/admin/metrics');
+      if(!r.ok) return;
+      const d = await r.json();
+      document.getElementById('feeds_total').textContent = d.feeds.total;
+      document.getElementById('jobs_total').textContent = d.jobs.total_jobs;
+      document.getElementById('jobs_running').textContent = d.jobs.running_jobs;
+      document.getElementById('exec_total').textContent = d.jobs.total_executions;
+    }catch(e){ console.error(e); }
+  }
+  setInterval(refreshMetrics, 2000);
+  refreshMetrics();
+</script>
+{% endblock %}
+{% endblock %}

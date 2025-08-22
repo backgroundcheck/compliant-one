@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<article>
+  <header>
+    <h1>Troubleshoot Scrapers</h1>
+    <p class="secondary">Inspect recent executions and errors</p>
+  </header>
+
+  <section>
+    <h3>Recent Executions</h3>
+    {% if executions %}
+    <table>
+      <thead>
+        <tr>
+          <th>Execution</th>
+          <th>Job</th>
+          <th>Status</th>
+          <th>Started</th>
+          <th>Completed</th>
+          <th>URLs</th>
+          <th>Errors</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ex in executions %}
+        <tr>
+          <td><code>{{ ex.execution_id }}</code></td>
+          <td><code>{{ ex.job_id }}</code></td>
+          <td>{{ ex.status.value }}</td>
+          <td>{{ ex.started_at }}</td>
+          <td>{{ ex.completed_at }}</td>
+          <td>{{ ex.urls_processed }}</td>
+          <td>{% if ex.errors %}<details><summary>{{ ex.errors|length }} error(s)</summary><pre>{{ ex.errors | tojson(indent=2) }}</pre></details>{% else %}<span class="secondary">—</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p class="secondary">No executions recorded yet.</p>
+    {% endif %}
+  </section>
+</article>
+{% endblock %}

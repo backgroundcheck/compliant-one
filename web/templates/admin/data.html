@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<article>
+  <header>
+    <h1>Data Quality & DB Inspection</h1>
+    <p class="secondary">Quick view of key databases, table counts, and sample rows</p>
+  </header>
+
+  {% for name, rep in reports.items() %}
+  <section>
+    <h3>{{ name }}</h3>
+    {% if not rep.exists %}
+      <p class="secondary">Database not found at {{ rep.path }}</p>
+    {% else %}
+      {% if rep.error %}<p class="contrast">Error: {{ rep.error }}</p>{% endif %}
+      <details open>
+        <summary>Tables ({{ rep.tables|length }})</summary>
+        {% if rep.tables %}
+          {% for t in rep.tables %}
+            <h4>{{ t.name }} <small class="secondary">(rows: {{ t.count if t.count is not none else 'unknown' }})</small></h4>
+            {% if t.sample %}
+            <pre style="max-height: 220px; overflow: auto">{{ t.sample | tojson(indent=2) }}</pre>
+            {% else %}<p class="secondary">No sample rows available.</p>{% endif %}
+          {% endfor %}
+        {% else %}
+          <p class="secondary">No tables detected.</p>
+        {% endif %}
+      </details>
+    {% endif %}
+  </section>
+  {% endfor %}
+</article>
+{% endblock %}

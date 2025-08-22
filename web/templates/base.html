@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title or 'Compliant-One' }}</title>
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2/css/pico.min.css" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  {% block head %}{% endblock %}
+  <style>
+    header { padding: 1rem 0; }
+    .brand { font-weight: 700; color: #1f4e79; }
+    .metrics { display:flex; gap:1rem; flex-wrap:wrap; }
+    .metric { padding:1rem; border:1px solid #e5e7eb; border-radius:8px; min-width:12rem; background:#fff; }
+    .muted { color:#6b7280; }
+  </style>
+</head>
+<body>
+  <header class="container">
+  <nav>
+      <ul>
+    <li class="brand"><a href="/ui" class="brand-link">🛡️ Compliant-One</a></li>
+      </ul>
+      <ul>
+        <li><a href="/ui">Home</a></li>
+        <li><a href="/ui/dashboard">Dashboard</a></li>
+  <li><a href="/ui/admin">Admin</a></li>
+        <li><a href="/ui/login">Login</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="container muted" style="margin-top:3rem">
+    <small>© {{ year }} Compliant-One</small>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
